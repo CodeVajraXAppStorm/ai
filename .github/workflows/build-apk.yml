@@ -1,48 +1,50 @@
+name: Build APK
+
 "on":
-push:
-branches:
-- main
-workflow_dispatch:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-build:
-runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  - name: Setup Node.js
-    uses: actions/setup-node@v4
-    with:
-      node-version: 20
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-  - name: Setup Java
-    uses: actions/setup-java@v4
-    with:
-      distribution: temurin
-      java-version: 17
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
 
-  - name: Install dependencies
-    run: npm install
+      - name: Install dependencies
+        run: npm install
 
-  - name: Install TypeScript
-    run: npm install --save-dev typescript
+      - name: Install TypeScript
+        run: npm install --save-dev typescript
 
-  - name: Prepare web files
-    run: mkdir -p www && cp index.html www/
+      - name: Prepare web assets
+        run: mkdir -p www && cp index.html www/
 
-  - name: Add Android platform
-    run: npx cap add android
+      - name: Add Android platform
+        run: npx cap add android
 
-  - name: Sync Capacitor
-    run: npx cap sync android
+      - name: Sync Android
+        run: npx cap sync android
 
-  - name: Build APK
-    run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+      - name: Build APK
+        run: cd android && chmod +x gradlew && ./gradlew assembleDebug
 
-  - name: Upload APK
-    uses: actions/upload-artifact@v4
-    with:
-      name: kalpvruksha-apk
-      path: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: kalpvruksha-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
