@@ -29,6 +29,12 @@ textarea:focus-visible,button:focus-visible,select:focus-visible{outline:2px sol
 @keyframes p{50%{box-shadow:0 0 0 5px #b3261e33}}
 #error-note{color:#ffb3a7;font-size:13px;padding:0 18px 8px;max-width:760px;width:100%;margin:0 auto}
 @media(max-width:420px){form{gap:6px;padding-left:8px;padding-right:8px}#mic{flex-basis:40px;width:40px;height:40px}#send{flex-basis:44px;width:44px;height:44px}#voice-lang{max-width:68px;font-size:11px}}
+.gal{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.gal figure{margin:0;width:calc(50% - 4px)}
+.gal img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;border:1px solid #3b3b3b;cursor:zoom-in;display:block}
+.gal figcaption{font-size:13px;color:#b7b7b7;text-align:center;margin-top:2px}
+#zoom{display:none;position:fixed;inset:0;background:#000e;align-items:center;justify-content:center;z-index:9;padding:12px}
+#zoom img{max-width:100%;max-height:100%;border-radius:8px}
 </style>
 </head>
 <body>
@@ -52,9 +58,10 @@ textarea:focus-visible,button:focus-visible,select:focus-visible{outline:2px sol
   <button id="mic" type="button" aria-label="माइक से बोलें">🎤</button>
   <button id="send" type="submit" aria-label="भेजें">↑</button>
 </form>
+<div id="zoom" onclick="this.style.display='none'"><img id="zoomImg" alt=""></div>
 <script>
 // Apni Groq key (gsk_ se shuru) yahan "" ke andar paste karein
-const API_KEY = "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";
+const API_KEY = "PASTE_API_KEY_HERE";
 const MODEL = "llama-3.1-8b-instant";
 let pickedModel = null;
 
@@ -144,6 +151,165 @@ function quickReply(text) {
   return null;
 }
 
+// ---- Photo: customer photo maange to yahan se dikhti hai (AI ko bheje bina) ----
+// Photo file ka naam: photos/<id>-1.jpg, -2.jpg, -3.jpg (attar ki sirf -1.jpg; chahein to -500gm.jpg, -1kg.jpg). Poori list photos/README.txt me hai
+const PHOTOS = [
+  ["sarv-aushadhi", "Sarv aushadhi", "sarv aushadhi|sarva aushadhi"],
+  ["sugandhi-aushadhi", "Sugandhi aushadhi", "sugandhi aushadhi"],
+  ["lal-aushadhi", "Lal aushadhi", "lal aushadhi"],
+  ["green-sugandhi", "Green sugandhi", "green sugandhi"],
+  ["nitya-sugandhi", "Nitya sugandhi", "nitya sugandhi"],
+  ["sarv-sugandhi", "Sarv sugandhi", "sarv sugandhi"],
+  ["blue-piya", "Blue Piya (Aparajita)", "blue piya|blue|piya|pia|aparajita|aprajita"],
+  ["jatamanshi", "Jatamanshi (Kali)", "jatamanshi|jatamansi"],
+  ["kesudo", "Kesudo (Pushp)", "kesudo|kesuda|pushp churn|pushp"],
+  ["desi-gulab", "Desi gulab (Rajasthani)", "desi gulab|rajasthani gulab"],
+  ["desi-jasud", "Desi jasud", "jasud|desi jasud"],
+  ["sugandhi-valo", "Sugandhi valo", "sugandhi valo|sugandhi vala"],
+  ["yellow-sugandhi-mati", "Yellow sugandhi mati", "yellow sugandhi mati|sugandhi mati|yellow mati"],
+  ["orange-sugandhi-mati", "Orange sugandhi mati", "orange sugandhi mati|sugandhi mati|orange mati"],
+  ["damro", "Damro", "damro"],
+  ["nagar-mutha", "Nagar mutha", "nagar mutha|nagarmotha|nagar motha"],
+  ["tulsi", "Tulsi", "tulsi"],
+  ["lavangashtak", "Lavangashtak (gandh churn)", "lavangashtak|gandh churn|gandhchurn"],
+  ["kapoor-kachli", "Kapoor kachli", "kapoor kachli|kapur kachli"],
+  ["bacha", "Bacha / Ghodavaj", "bacha|ghodavaj|ghoda vaj"],
+  ["malay-chandan", "Malay chandan", "malay chandan"],
+  ["vaskshep", "Vaskshep", "vaskshep|vashkshep|vaskhep|vaskep|vashkep|vaskshp"],
+  ["chandan-aushadhi-vaskshep", "Chandan aushadhi vaskshep", "chandan aushadhi vaskshep"],
+  ["sugandhi-aushadhi-vaskshep", "Sugandhi aushadhi vaskshep", "sugandhi aushadhi vaskshep"],
+  ["sugandhi-lal-vaskshep", "Sugandhi lal vaskshep", "sugandhi lal vaskshep|lal vaskshep"],
+  ["amber-kasturi-vaskshep", "Amber kasturi vaskshep", "amber kasturi vaskshep|amber vaskshep|kasturi vaskshep"],
+  ["agar-chandan-vaskshep", "Agar chandan vaskshep", "agar chandan vaskshep|agar vaskshep"],
+  ["chandan-chandan-vaskshep", "Chandan chandan vaskshep", "chandan chandan vaskshep|chandan vaskshep"],
+  ["sukhad-churn", "Shuddh sukhad churn", "sukhad churn|shuddh sukhad churn"],
+  ["sukhad-kashth", "Sukhad kashth (lakdi)", "sukhad kashth|sukhad lakdi|sukhad kast"],
+  ["ghee", "Desi gay ghee", "ghee|desi ghee"],
+  ["asal-ashtagandh", "Asal (Pila) ashtagandh", "asal ashtagandh|asli ashtagandh|pila ashtagandh|yellow ashtagandh|ashtagandh|ashtgandh"],
+  ["lal-ashtagandh", "Lal ashtagandh", "lal ashtagandh|ashtagandh|ashtgandh"],
+  ["indra-churn", "Indra churn", "indra churn"],
+  ["divya-churn", "Divya churn", "divya churn"],
+  ["divya-anjan", "Divya anjan", "divya anjan"],
+  ["tirthjal", "108 nadi tirthjal", "tirthjal|tirth jal"],
+  ["mangal-mati", "Mangal mati", "mangal mati|mangal mitti"],
+  ["gugal", "Gugal", "gugal|guggul"],
+  ["ras-gugal", "Ras gugal / Bhens gugal", "ras gugal|bhens gugal|bhains gugal"],
+  ["desi-gugal", "Asli desi gugal", "desi gugal|asli gugal|asli desi gugal"],
+  ["hiranya-gugal", "Asli hiranya gugal", "hiranya gugal|asli hiranya gugal"],
+  ["salai-gugal", "Salai gugal (kandru)", "salai gugal|kandru gugal"],
+  ["agar-chips", "Agar chips", "agar chips"],
+  ["agar-chuo-ras", "Agar chuo ras", "agar chuo ras|agar chua ras|chuo ras"],
+  ["kashay", "Kashay churn", "kashay|kashay churn|kasay"],
+  ["sadaushadhi", "Sadaushadhi", "sadaushadhi|sad aushadhi"],
+  ["mulika", "Mulika varg", "mulika|mulika varg"],
+  ["prathmashtak", "Prathmashtak", "prathmashtak|pratham ashtak"],
+  ["dwitiyashtak", "Dwitiyashtak", "dwitiyashtak|dwitiya ashtak"],
+  ["raksha-potli", "Raksha potli", "raksha potli|rakhsha potli"],
+  ["mindhol", "Mindhol", "mindhol|mindhal"],
+  ["darbh-pudi", "Darbh pudi", "darbh pudi|darbh|dabh"],
+  ["sarsav-pack", "Sarsav pack", "sarsav pack|sarsav|sarson"],
+  ["sona-varakh", "Sona varakh", "sona varakh|sone ka varakh|varakh"],
+  ["panchratna-churn", "Panchratna churn", "panchratna churn|panchratan churn"],
+  ["panchratna-potli", "Panchratna potli", "panchratna potli|panchratan potli"],
+  ["kesar-kashmiri", "Kesar kashmiri", "kesar kashmiri|kashmiri kesar|kesar"],
+  ["kapoor", "Kapoor", "kapoor|kapur|camphor"],
+  ["chandan-sukhad", "Chandan sukhad (dabbi)", "chandan sukhad|sukhad chandan"],
+  ["small-set", "18 Abhishek Small set", "small set|chhota set"],
+  ["half-set", "18 Abhishek Half set", "half set"],
+  ["full-set", "18 Abhishek Mota (full) set", "full set|mota set"],
+  ["attar-mogro", "Mogro attar", "mogro attar|mogra attar|mogro|mogra", 1],
+  ["attar-kevdo", "Kevdo attar", "kevdo attar|kewda attar|kevdo|kewda", 1],
+  ["attar-gulab", "Gulab attar (8 ml)", "gulab attar|gulab ka attar", 1],
+  ["attar-chandan", "Chandan attar (8 ml)", "chandan attar", 1],
+  ["attar-chameli", "Chameli attar", "chameli attar|chameli", 1],
+  ["attar-jasmine", "Jasmine attar", "jasmine attar|jasmine|jasmin", 1],
+  ["ooncha-kasturi", "Kasturi Arham Siddha attar", "kasturi attar|kasturi|arham siddha|arham|kasturi arham siddha", 1],
+  ["ooncha-brutmusk", "Brutmusk attar", "brutmusk attar|brutmusk|brut musk", 1],
+  ["ooncha-amber", "Amber attar", "amber attar|amber|ambar attar|ambar", 1],
+  ["ooncha-chandan", "Chandan attar (ooncha)", "chandan attar|ooncha chandan attar", 1],
+  ["ooncha-agar", "Agar attar", "agar attar|agar ka attar", 1],
+  ["ooncha-khas", "Khas / Valo attar", "khas attar|khas|valo attar|khas valo", 1],
+  ["ooncha-kesar", "Kesar attar", "kesar attar|kesar", 1],
+  ["ooncha-gulab", "Gulab attar (ooncha)", "gulab attar|ooncha gulab attar", 1],
+  ["ooncha-mukhvilas", "Mukh vilas attar", "mukh vilas attar|mukh vilas|mukhvilas attar|mukhvilas", 1],
+  ["ooncha-suprabhat", "Suprabhat attar", "suprabhat attar|suprabhat|su prabhat", 1],
+  ["ooncha-kshamama", "Kshamamaa attar", "kshamamaa attar|kshamama attar|kshamama|kshama maa|kshamamaa", 1],
+  ["attar", "Attar", "attar|atar", 0, "Kaunsa attar? 8 ml: Mogro, Kevdo, Gulab, Chandan, Chameli, Jasmine. Ooncha attar: Kasturi Arham Siddha, Brutmusk, Amber, Chandan, Agar, Khas/Valo, Kesar, Gulab, Mukh vilas, Suprabhat, Kshamamaa. Naam likhein, jaise Mogro attar."],
+  ["ooncha-attar", "Ooncha attar", "ooncha attar|uncha attar|unche attar", 0, "Kaunsa ooncha attar? Kasturi Arham Siddha, Brutmusk, Amber, Chandan, Agar, Khas/Valo, Kesar, Gulab, Mukh vilas, Suprabhat, Kshamamaa. Naam likhein, jaise Amber attar."]
+];
+const zoom = document.getElementById("zoom"), zoomImg = document.getElementById("zoomImg");
+let lastPhoto = [];
+const loadImg = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+
+/*FUZZY-START*/
+// Spelling galti, Hindi/Gujarati/Roman: sab ko "consonant skeleton" me badalkar milate hain
+const DEVMAP = {"क":"k","ख":"k","ग":"g","घ":"g","ङ":"n","च":"c","छ":"c","ज":"j","झ":"j","ञ":"n","ट":"t","ठ":"t","ड":"d","ढ":"d","ण":"n","त":"t","थ":"t","द":"d","ध":"d","न":"n","प":"p","फ":"p","ब":"b","भ":"b","म":"m","य":"y","र":"r","ल":"l","ळ":"l","व":"v","श":"s","ष":"s","स":"s","ं":"n","ँ":"n","\u0958":"k","\u0959":"k","\u095A":"g","\u095B":"j","\u095C":"d","\u095D":"d","\u095E":"p","\u095F":"y"};
+const romanSkel = s => s.replace(/ch/g,"@").replace(/c/g,"k").replace(/@/g,"c")
+  .replace(/sh|kh|gh|th|dh|bh|ph|jh/g, m => m[0]).replace(/w/g,"v").replace(/z/g,"j").replace(/q/g,"k")
+  .replace(/x/g,"ks").replace(/f/g,"p").replace(/h/g,"").replace(/(.)\1+/g,"$1").replace(/[aeiou]/g,"");
+function skel(w) {
+  let out = "", buf = "";
+  const flush = () => { out += romanSkel(buf); buf = ""; };
+  for (let ch of w.normalize("NFC")) {
+    let c = ch.charCodeAt(0);
+    if (c >= 0x0A81 && c <= 0x0AFF) { c -= 0x180; ch = String.fromCharCode(c); }
+    if (c >= 0x0900 && c <= 0x097F) { flush(); out += DEVMAP[ch] || ""; } else buf += ch;
+  }
+  flush();
+  return out.replace(/(.)\1+/g, "$1");
+}
+function lev(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+const KEYLIST = PHOTOS.flatMap(p => p[2].split("|").map(k => { const nk = norm(k), ws = nk.split(" "); return { p, ws, sk: ws.map(skel).join("") }; }));
+function matchPhotos(n) {
+  const words = n.split(" ").filter(Boolean), hits = [];
+  for (const k of KEYLIST) {
+    const kn = k.ws.length, L = k.sk.length;
+    let ok = false, span = null;
+    for (let sz = Math.max(1, kn - 1); sz <= kn + 1 && !ok; sz++)
+      for (let i = 0; i + sz <= words.length && !ok; i++) {
+        const win = words.slice(i, i + sz);
+        if (L <= 2) { const kr = k.ws.join(""); ok = lev(win.join(""), kr) <= (kr.length >= 5 ? 1 : 0); }
+        else ok = lev(win.map(skel).join(""), k.sk) <= (L <= 6 ? 0 : L <= 10 ? 1 : 2);
+        if (ok) span = [i, i + sz - 1];
+      }
+    if (ok) hits.push({ p: k.p, s: span[0], e: span[1] });
+  }
+  // jis match ke shabd kisi bade match ("ooncha attar", "sugandhi aushadhi") ke andar aate hain, use hata do
+  return [...new Set(hits.filter(x => !hits.some(o => o.p !== x.p && o.s <= x.s && o.e >= x.e && (o.e - o.s) > (x.e - x.s))).map(x => x.p))];
+}
+const PHOTO_RE = /^(ph?ot[ou]*s?|fot[ou]*s?|phto|pics?|pix|pictures?|images?|tas[bv]+(ee?|i)r)$/;
+const PHOTO_SCRIPT = ["फोटो","फ़ोटो","फोटु","फोटू","फ़ोटू","तस्वीर","तसवीर","पिक्चर","इमेज","चित्र","ફોટો","ફોટા","ફોટું","તસવીર","ચિત્ર","પિક્ચર","ઇમેજ"].map(norm);
+const isPhotoAsk = n => n.split(" ").some(w => PHOTO_RE.test(w)) || PHOTO_SCRIPT.some(s => n.includes(s));
+/*FUZZY-END*/
+
+async function showPhotos(list) {
+  if (!list.length) { add("assistant", "Kaunsi cheez ki photo chahiye? Cheez ka naam likhein, jaise Vaskshep, Ashtagandh, Gugal."); return; }
+  for (const p of list) {
+    if (p[4]) { add("assistant", p[4]); continue; }
+    const cnt = p[3] || 3;
+    const slots = Array.from({ length: cnt }, (_, i) => [String(i + 1), "Photo"]).concat(cnt > 1 ? [["500gm", "500 gm pack"], ["1kg", "1 kg pack"]] : []);
+    const got = (await Promise.all(slots.map(async ([s, cap]) => { const i = await loadImg("photos/" + p[0] + "-" + s + ".jpg"); return i ? { i, cap } : null; }))).filter(Boolean);
+    if (!got.length) { add("assistant", p[1] + " ki photo abhi available nahi hai. Kalpesh Guruji se contact karein: 9879582176"); continue; }
+    const box = add("assistant", p[1] + ":");
+    const g = document.createElement("div");
+    g.className = "gal";
+    got.forEach(({ i, cap }) => {
+      const f = document.createElement("figure"), c = document.createElement("figcaption");
+      i.alt = cap; c.textContent = cap;
+      i.addEventListener("click", () => { zoomImg.src = i.src; zoom.style.display = "flex"; });
+      f.append(i, c); g.append(f);
+    });
+    box.append(g);
+  }
+  chat.scrollTop = chat.scrollHeight;
+}
+
 async function ask(text) {
   text = (text || "").trim();
   if (busy || !text) return;
@@ -153,6 +319,11 @@ async function ask(text) {
   add("user", text);
   const quick = quickReply(text);
   if (quick) { add("assistant", quick); return; }
+  const n = norm(text);
+  let found = matchPhotos(n);
+  if (found.some(p => !p[4] && (p[0].startsWith("attar-") || p[0].startsWith("ooncha-")))) found = found.filter(p => !p[4]);
+  if (found.length) lastPhoto = found;
+  if (isPhotoAsk(n)) { await showPhotos(found.length ? found : lastPhoto); return; }
   history.push({ role: "user", content: text });
   busy = true; send.disabled = true;
   const el = add("assistant", "जवाब तैयार हो रहा है…");
