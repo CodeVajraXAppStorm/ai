@@ -5,80 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kalpvruksha Jadibuty Bhandar</title>
 <style>
-:root{
-  color-scheme:dark;
-  --bg:#101010;--fg:#f5f5f5;--mut:#b7b7b7;--card:#222222;
-  --line:#383838;--acc:#ff8a00;--me:#292929
-}
+:root{color-scheme:dark;--bg:#101010;--fg:#f5f5f5;--card:#222;--line:#383838;--acc:#ff8a00;--me:#292929}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{
-  background:var(--bg);color:var(--fg);
-  font:16px/1.6 system-ui,-apple-system,sans-serif;
-  display:flex;flex-direction:column;
-  padding-top:env(safe-area-inset-top)
-}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
 header{padding:14px 18px;border-bottom:1px solid var(--line);font-size:19px;font-weight:600}
 #chat{flex:1;overflow-y:auto;padding:18px;max-width:760px;width:100%;margin:0 auto;overscroll-behavior:contain}
 .hello{text-align:center;margin:8vh 0 18px;font-size:28px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
-.chips button{
-  background:#242424;border:1px solid #414141;color:var(--fg);
-  border-radius:22px;padding:10px 15px;font-size:14px;cursor:pointer
-}
+.chips button{background:#242424;border:1px solid #414141;color:var(--fg);border-radius:22px;padding:10px 15px;font-size:14px;cursor:pointer}
 .chips button:active{background:#383838}
 .m{margin:14px 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .m.u{background:var(--me);border:1px solid #3b3b3b;padding:10px 14px;border-radius:16px;margin-left:15%}
-.m.a{font-size:16px}
-form{
-  display:flex;align-items:flex-end;gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));
-  max-width:760px;width:100%;margin:0 auto;background:var(--bg)
-}
-textarea{
-  flex:1;resize:none;min-width:0;border:1px solid #414141;background:#202020;color:var(--fg);
-  border-radius:22px;padding:12px 16px;font:16px/1.4 system-ui;max-height:120px;min-height:48px
-}
+form{display:flex;align-items:flex-end;gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));max-width:760px;width:100%;margin:0 auto;background:var(--bg)}
+textarea{flex:1;resize:none;min-width:0;border:1px solid #414141;background:#202020;color:var(--fg);border-radius:22px;padding:12px 16px;font:16px/1.4 system-ui;max-height:120px;min-height:48px}
 textarea::placeholder{color:#999}
 textarea:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-#send{
-  flex:0 0 48px;background:var(--acc);color:#111;border:0;border-radius:50%;
-  width:48px;height:48px;font-size:25px;font-weight:700;cursor:pointer
-}
+#send{flex:0 0 48px;background:var(--acc);color:#111;border:0;border-radius:50%;width:48px;height:48px;font-size:25px;font-weight:700;cursor:pointer}
 #send:disabled{opacity:.55;cursor:wait}
-
-/* New microphone controls */
-#mic{
-  flex:0 0 44px;width:44px;height:44px;border-radius:50%;
-  border:1px solid #414141;background:#242424;color:var(--fg);
-  display:flex;align-items:center;justify-content:center;
-  font-size:21px;cursor:pointer;padding:0
-}
-#mic.listening{
-  background:#b3261e;color:#fff;border-color:#b3261e;
-  animation:micPulse 1.2s infinite
-}
-#mic:disabled{opacity:.55;cursor:not-allowed}
-#voice-lang{
-  max-width:78px;height:38px;align-self:center;border-radius:12px;
-  border:1px solid #414141;background:#202020;color:var(--fg);
-  font-size:12px;padding:0 4px
-}
-@keyframes micPulse{
-  50%{box-shadow:0 0 0 5px #b3261e33}
-}
+#mic{flex:0 0 44px;width:44px;height:44px;border-radius:50%;border:1px solid #414141;background:#242424;color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:21px;cursor:pointer;padding:0}
+#mic.listening{background:#b3261e;color:#fff;border-color:#b3261e;animation:p 1.2s infinite}
+#voice-lang{max-width:78px;height:38px;align-self:center;border-radius:12px;border:1px solid #414141;background:#202020;color:var(--fg);font-size:12px;padding:0 4px}
+@keyframes p{50%{box-shadow:0 0 0 5px #b3261e33}}
 #error-note{color:#ffb3a7;font-size:13px;padding:0 18px 8px;max-width:760px;width:100%;margin:0 auto}
-@media(max-width:420px){
-  form{gap:6px;padding-left:8px;padding-right:8px}
-  #mic{flex-basis:40px;width:40px;height:40px}
-  #send{flex-basis:44px;width:44px;height:44px}
-  #voice-lang{max-width:68px;font-size:11px}
-}
-@media(max-width:700px){.hello{margin-top:8vh} #chat{padding:16px}}
+@media(max-width:420px){form{gap:6px;padding-left:8px;padding-right:8px}#mic{flex-basis:40px;width:40px;height:40px}#send{flex-basis:44px;width:44px;height:44px}#voice-lang{max-width:68px;font-size:11px}}
 </style>
 </head>
 <body>
 <header>Kalpvruksha Jadibuty Bhandar</header>
-
 <div id="chat" aria-live="polite">
   <div class="hello" id="hello">जय जिनेन्द्र 🙏</div>
   <div class="chips" id="chips">
@@ -87,83 +41,55 @@ textarea:focus-visible,button:focus-visible,select:focus-visible{outline:2px sol
     <button type="button">5 kg sarv aushadhi kitne ki?</button>
   </div>
 </div>
-
 <div id="error-note" role="status" aria-live="polite"></div>
-
 <form id="f">
-  <textarea id="t" rows="1"
-    placeholder="अपना सवाल लिखें / Ask your question..."
-    aria-label="अपना सवाल लिखें / Ask your question"></textarea>
-
-  <select id="voice-lang" aria-label="बोलने की भाषा" title="बोलने की भाषा">
+  <textarea id="t" rows="1" placeholder="अपना सवाल लिखें / Ask your question..." aria-label="अपना सवाल लिखें"></textarea>
+  <select id="voice-lang" aria-label="बोलने की भाषा">
     <option value="hi-IN">हिंदी</option>
     <option value="gu-IN">ગુજરાતી</option>
     <option value="en-IN">English</option>
   </select>
-
-  <button id="mic" type="button" aria-label="माइक से बोलें" title="माइक से बोलें">🎤</button>
+  <button id="mic" type="button" aria-label="माइक से बोलें">🎤</button>
   <button id="send" type="submit" aria-label="भेजें">↑</button>
 </form>
-
 <script>
-/*
-  IMPORTANT:
-  Paste your Groq API key in API_KEY below.
-  A key placed in an HTML file can be seen by anyone who gets the app.
-  For a public app, use a server-side proxy instead.
-*/
-const API_KEY = "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";
+// Apni Groq key (gsk_ se shuru) yahan "" ke andar paste karein
+const API_KEY = "PASTE_API_KEY_HERE";
 const MODEL = "llama-3.1-8b-instant";
 let pickedModel = null;
 
 async function pickModel() {
   if (pickedModel) return pickedModel;
   try {
-    const r = await fetch("https://api.groq.com/openai/v1/models", {
-      headers: { Authorization: "Bearer " + API_KEY },
-      signal: AbortSignal.timeout(12000)
-    });
-    if (!r.ok) throw new Error("Model list unavailable");
-    const payload = await r.json();
-    const ids = (payload.data || []).map(m => m.id);
-    const pref = [
-      "llama-3.3-70b-versatile",
-      "llama-3.1-8b-instant",
-      "openai/gpt-oss-120b",
-      "openai/gpt-oss-20b"
-    ];
-    pickedModel = pref.find(p => ids.includes(p)) ||
-      ids.find(i => !/whisper|tts|guard|orpheus|compound|embed|safeguard/i.test(i)) ||
-      MODEL;
-  } catch (e) {
-    pickedModel = MODEL;
-  }
+    const r = await fetch("https://api.groq.com/openai/v1/models", { headers: { Authorization: "Bearer " + API_KEY }, signal: AbortSignal.timeout(12000) });
+    if (!r.ok) throw new Error("x");
+    const ids = ((await r.json()).data || []).map(m => m.id);
+    const pref = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "openai/gpt-oss-120b", "openai/gpt-oss-20b"];
+    pickedModel = pref.find(p => ids.includes(p)) || ids.find(i => !/whisper|tts|guard|orpheus|compound|embed|safeguard/i.test(i)) || MODEL;
+  } catch (e) { pickedModel = MODEL; }
   return pickedModel;
 }
 
-const SYSTEM = `Tum "Kalpvruksha Jadibuty Bhandaar" ke natural conversational AI assistant ho. Tumhara kaam dukaan ke rates, Jain puja samagri aur unki basic jankari dena hai. Order mat lo.
-CONVERSATION AUR LANGUAGE RULES:
-- Customer ki bhasha har message par pehchano aur usi bhasha me jawab do: Hindi, Gujarati ya English.
-- Roman Hindi (jaise "kitne ka hai", "rate batao"), Roman Gujarati (jaise "ketla nu che", "bhav ketlo") aur English bhi samjho. Hindi/Gujarati apni script me likha ho tab bhi samjho.
-- Baatcheet natural aur friendly rakho, jaise ek helpful dukaan ka assistant baat karta hai. Jawab seedhe, chhote aur sawaal ke mutabik do; bina zarurat har baar greeting mat do.
-- Chhote follow-up ko pichhle messages ke context se samjho. Jaise customer pehle "Sarv aushadhi ka rate?" poochhe aur phir "5 kg kitne ka?" kahe, to samjho ki 5 kg Sarv aushadhi ki baat hai. "Aur iska?", "woh wala", "kitna padega?" jaise follow-up ko bhi recent conversation se jodo. Agar context se do matlab nikalte hon aur pakka samajh na aaye, to ek chhota clarification question poochho; rate ka andaza mat lagao.
-- Customer sirf Hi, Hello, Namaste ya Jai Jinendra kahe aur koi aur sawaal na ho, to uski bhasha ke hisaab se sirf chhota greeting do, jaise "Jai Jinendra 🙏". Greeting ke baad extra sawaal ya line mat jodo.
-- Roman Hindi/Gujarati me jawab dena theek hai agar customer Roman me likh raha ho. Customer Gujarati script me likhe to Gujarati script me, Hindi me likhe to Hindi me, aur English me likhe to English me jawab do.
-Jawab me "bhav" shabd kabhi mat likho. Rate ke jawab me sirf cheez ka naam aur Rs. me rakam likho, jaise "Blue Piya (Aparajita) 1 kg: Rs. 1600". Jawab chhote aur seedhe rakho. Neeche diye gaye dukaan ke rate aur niyam bilkul na badlo. NIYAM:
+const SET = "kashay, mangal mati, sad aushadhi, mulika, prathmashtak, dwitiyashtak, sarv aushadhi, pushp churn, sugandhi aushadhi, sugandhi vaskshep, tirth jal, raksha potli, mindhol, darbh pudi, sarsav pack";
+const SYSTEM = `Tum "Kalpvruksha Jadibuty Bhandar" ke assistant ho: rate aur Jain puja samagri ki basic jankari batate ho. Order mat lo.
 
-1. Rate sirf neeche ki list se batao. List me jo cheez nahi hai uska rate mat banao; bolo ki Kalpesh Guruji se contact karein: 9879582176. Discount mat do.
-2. Jahan rate me "/" ho (jaise 3500/10000), wahan quality ke hisaab se 2-3 rate hain. Hamesha SAARE rate batao.
-3. Bracket wala naam doosra naam hai. Blue Piya = Aparajita. Jatamanshi = Kali. Desi Gulab = Rajasthani. Doosre naam se puchhe to bhi samjho.
-4. Pila ashtagandh aur Asal ashtagandh ek hi hain: 1 gm ka 200. Lal ashtagandh 1 dabbi ka 200.
-5. Asli agar chips ka rate 2000/4800 (dono batao). Matra mat batao; matra puchhe to bolo Kalpesh Guruji se contact karein.
-6. Per kg wali cheez ka hisaab karna ho (jaise 5 kg x 1200 = 6000) to multiply karke batao.
-7. Koi shakrastav abhishek ki aushadhi puchhe to "SHAKRASTAV ABHISHEK AUSHADHI" ki saari cheezein rate ke saath batao (1 kg ka rate).
-8. Koi puchhe 18 abhishek me kaun si aushadhi hain to "18 ABHISHEK AUSHADHI" ki saari cheezein "1 kg" bolkar rate ke saath batao.
-9. 18 abhishek set: Small set 500 (sone ke varakh ke saath 900). Half set 700. Mota (full) set 2000.
-10. Mote set me kya aata hai puchhe to: 9 prakar ki aushadhi 50/50 gm (kashay, mangal mati, sad aushadhi, mulika, prathmashtak, dwitiyashtak, sarv aushadhi, pushp churn, sugandhi aushadhi, sugandhi vaskshep, tirth jal, raksha potli, mindhol, darbh pudi, sarsav pack) se shuru karo, phir ye cheezein rate ke saath "attar 1 bottle 100" tak batao: sona varakh 1 patti 400, panchratna churn 1 pack 200, asal ashtagandh 1 gm 200, lal ashtagandh 1 dabbi 200, chandan sukhad 1 dabbi 300, kesar kashmiri 1 dabbi 200, kapoor 1 pack 50, kasturi chandan aadi 200, attar 1 bottle 100. Small set ke liye bhi yahi tareeka.
-11. Half set me kya aata hai puchhe to SIRF itna batao, bilkul isi tarah: "9 prakar ki aushadhi 50/50 gm set Rs. 700: kashay, mangal mati, sad aushadhi, mulika, prathmashtak, dwitiyashtak, sarv aushadhi, pushp churn, sugandhi aushadhi, sugandhi vaskshep, tirth jal, raksha potli, mindhol, darbh pudi, sarsav pack". Sath me ye bhi batao ki ye cheezein bhi milti hain par 700 me shamil nahi, alag se: sona varakh 1 patti 400, panchratna churn 1 pack 200, panchratna potli 1 nang 200, kasturi chandan kesar 200.
-12. Attar: 8 ml ke sab attar (mogro, kevdo, gulab, chandan, chameli, jasmine) 100 ke. Ooncha (mehnga) attar 10 ml ke, neeche list me. Attar ke baare me puchhe to yahi tareeka.
-13. BASIC JANKARI: Customer puja samagri, abhishek, vaskshep, ashtagandh, gugal, chandan, kesar, attar jaisi cheezon ke baare me basic jankari puchhe (ye kya hai, kis kaam aati hai, kaise use hoti hai) to chhote aur sahi shabdon me batao. Jain puja ki baat adar se karo. Jis baat ka pakka pata na ho wahan andaza mat lagao, bolo ki Kalpesh Guruji se poochh lein: 9879582176. Rate hamesha sirf neeche ki list se do, jankari ke naam par rate mat banao. Bimari ka ilaaj ya dawai ki salah mat do, doctor se poochhne ko kaho. Dukaan aur puja ke alawa doosre topic par vinamrata se mana karo.
+BHASHA: Customer ki bhasha (Hindi/Gujarati/English, Roman ya script) pehchano aur usi me chhota, seedha jawab do. Roman me likhe to Roman me. Markdown ya bold (**) kabhi mat use karo, sirf plain text. Follow-up pichhle messages se samjho ("5 kg kitne ka?" = pichhli cheez ka). Pakka na samjho to ek chhota sawal poochho. Jawab me "bhav" shabd kabhi mat likho; sirf cheez ka naam aur Rs. rakam likho, jaise "Blue Piya (Aparajita) 1 kg: Rs. 1600". Jasmine ko Gujarati me "જાસ્મિન" aur Hindi me "जास्मिन" likho.
+
+NIYAM:
+1. Rate sirf neeche ki list se. List me na ho to rate mat banao, bolo Kalpesh Guruji se contact karein: 9879582176. Discount nahi.
+2. "/" wale rate me quality ke hisaab se 2-3 rate hain. Hamesha SAARE batao.
+3. Bracket wala naam doosra naam hai: Blue Piya = Aparajita, Jatamanshi = Kali, Desi Gulab = Rajasthani.
+4. Ek naam kai jagah ho to SAB jagah ke rate batao. Jaise Amber: attar 10 ml Rs. 1000 aur Amber Kasturi vaskshep 1 kg Rs. 10000/15000/20000. Aise hi Chandan, Agar, Gulab, Kesar, Khas. Spelling alag ho to bhi samjho: Ambar/Anbar/अंबर/એમ્બર = Amber; Vashkshep = Vaskshep.
+5. Ashtagandh: Pila aur Asal ek hi hain, 1 gm Rs. 200. Lal ashtagandh 1 dabbi Rs. 200.
+6. Asli agar chips Rs. 2000/4800. Matra mat batao; matra puchhe to Kalpesh Guruji se contact karne ko kaho.
+7. Per kg wali cheez ka hisaab multiply karke batao (5 kg x 1200 = 6000).
+8. Shakrastav abhishek ki aushadhi puchhe to us list ki saari cheezein 1 kg rate ke saath batao. 18 abhishek ki aushadhi puchhe to us list ki saari cheezein "1 kg" bolkar rate ke saath batao.
+9. 18 abhishek set: Small Rs. 500 (sone ke varakh ke saath Rs. 900), Half Rs. 700, Mota (full) Rs. 2000. Sirf "set kitne ke" puchhe to teeno ke rate batao.
+10. Small ya Mota set me kya aata hai: pehle "9 prakar ki aushadhi 50/50 gm: ${SET}", phir ye cheezein "attar 1 bottle 100" tak: sona varakh 1 patti 400, panchratna churn 1 pack 200, asal ashtagandh 1 gm 200, lal ashtagandh 1 dabbi 200, chandan sukhad 1 dabbi 300, kesar kashmiri 1 dabbi 200, kapoor 1 pack 50, kasturi chandan aadi 200, attar 1 bottle 100.
+11. HALF SET ke baare me koi bhi sawal (kya aata hai, kya milta hai, details, alag se, extra, aur kya) ho to pehle SIRF itna likho: "9 prakar ki aushadhi 50/50 gm set Rs. 700: ${SET}". Phir HAMESHA ye bhi likho: "Ye cheezein half set me shamil nahi hain, alag se milti hain: sona varakh 1 patti Rs. 400, panchratna churn 1 pack Rs. 200, panchratna potli 1 nang Rs. 200, kasturi chandan kesar Rs. 200."
+12. Attar: 8 ml ke sab (mogro, kevdo, gulab, chandan, chameli, jasmine) Rs. 100. Ooncha (mehnga) attar 10 ml ke, neeche list me.
+13. Kisi cheez ke "bare me / kya hai / batao / jankari" puchhe (jaise "sarv aushadhi ke bare me kya hai") to SIRF cheez ka naam, matra aur Rs. rate likho, jaise "Sarv aushadhi 1 kg: Rs. 1200". Koi description, upyog ya faayde mat likho.
+14. Upyog ya matlab TABHI batao jab customer saaf puchhe ("kis kaam aata hai", "kaise use karte hain", "iska matlab kya hai"). Tab bhi 1-2 chhoti line me, sirf puja ke upyog ki baat. Bimari, sehat ya ilaaj ka koi daava kabhi mat likho; aisa puchhe to bolo "doctor se poochhein". Pakka na pata ho to bolo Kalpesh Guruji se poochh lein. Dukaan aur puja ke alawa topic par vinamrata se mana karo.
 
 LIST (1 kg rate, powder):
 SHAKRASTAV ABHISHEK AUSHADHI: Sarv aushadhi 1200, Sugandhi aushadhi 1200, Green sugandhi 1200, Nitya sugandhi 1200, Sarv sugandhi 1200, Lal aushadhi 1600, Blue Piya (Aparajita) 1600, Jatamanshi (Kali) 1600, Kesudo 500, Desi gulab (Rajasthani) 1600, Desi jasud 1200, Sugandhi valo 1000, Yellow sugandhi mati 1500, Orange sugandhi mati 1500, Damro 1200, Nagar mutha 1000, Tulsi 1200, Lavangashtak (gandh churn) 2000, Kapoor kachli 1600, Bacha/Ghodavaj 800, Malay chandan 2000.
@@ -173,12 +99,8 @@ POOJA UPYOGI DRAVYA: Desi gay desi bilona ghee 1600, Ashtagandh asal 1 gm 200, L
 18 ABHISHEK AUSHADHI (1 kg): Kashay churn 1200, Sadaushadhi 1200, Mulika varg 1200, Prathmashtak 1200, Dwitiyashtak 1200, Sarv aushadhi 1200, Sugandhi aushadhi 1200, Gandh churn 2000, Pushp/Kesudo 500.
 ATTAR: 8 ml (mogro, kevdo, gulab, chandan, chameli, jasmine) 100 each. Ooncha attar 10 ml: Kasturi Arham Siddha 700, Brutmusk teekha 700, Amber 1000, Chandan 1000, Agar 1000, Khas/Valo 1000, Kesar 700, Gulab 700, Mukh vilas 500, Suprabhat 700, Kshamamaa 1200.`;
 
-const chat = document.getElementById("chat");
-const t = document.getElementById("t");
-const send = document.getElementById("send");
-const errorNote = document.getElementById("error-note");
-let history = [];
-let busy = false;
+const chat = document.getElementById("chat"), t = document.getElementById("t"), send = document.getElementById("send"), errorNote = document.getElementById("error-note");
+let history = [], busy = false;
 
 function add(role, text) {
   const d = document.createElement("div");
@@ -189,55 +111,63 @@ function add(role, text) {
   return d;
 }
 
+// Hi / Ok jaise chhote message ka jawab bina AI ke, turant
+const norm = s => s.toLowerCase().replace(/[^\p{L}\p{M}\p{N}\s]/gu, "").replace(/\s+/g, " ").trim();
+const GREET = ["hi","hii","hiii","hello","helo","hey","namaste","namaskar","jai jinendra","jay jinendra","jinendra","जय जिनेन्द्र","जय जिनेंद्र","हाय","हेलो","हैलो","नमस्ते","જય જિનેન્દ્ર","જય જિનેંદ્ર","હાય","હેલો","નમસ્તે"];
+const OKS = ["ok","okay","okk","ok ok","k","thik hai","theek hai","thik he","thik","theek","ओके","ठीक है","ठीक","ઓકે","ઠીક છે","ઠીક"];
+function quickReply(text) {
+  const n = norm(text);
+  if (GREET.includes(n)) return /[\u0A80-\u0AFF]/.test(n) ? "જય જિનેન્દ્ર 🙏" : /[\u0900-\u097F]/.test(n) ? "जय जिनेन्द्र 🙏" : "Jai Jinendra 🙏";
+  if (OKS.includes(n)) return "Ok";
+  return null;
+}
+
 async function ask(text) {
-  if (busy || !text.trim()) return;
-  text = text.trim();
+  text = (text || "").trim();
+  if (busy || !text) return;
   document.getElementById("hello")?.remove();
   document.getElementById("chips")?.remove();
   errorNote.textContent = "";
   add("user", text);
+  const quick = quickReply(text);
+  if (quick) { add("assistant", quick); return; }
   history.push({ role: "user", content: text });
-  busy = true;
-  send.disabled = true;
+  busy = true; send.disabled = true;
   const el = add("assistant", "जवाब तैयार हो रहा है…");
   let full = "";
-
   try {
     if (!API_KEY || API_KEY === "PASTE_API_KEY_HERE") {
-      el.textContent = "Groq API key सेट नहीं है। index.html में API_KEY के अंदर अपनी Groq API key डालें, फिर दोबारा चलाएँ।";
-      history.pop();
-      return;
+      el.textContent = "Groq API key सेट नहीं है। index.html में API_KEY के अंदर अपनी key डालें।";
+      history.pop(); return;
     }
-
     const model = await pickModel();
-    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      signal: AbortSignal.timeout(60000),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + API_KEY
-      },
-      body: JSON.stringify({
-        model,
-        ...(model.startsWith("openai/gpt-oss") ? { reasoning_effort: "low" } : {}),
-        stream: true,
-        max_tokens: 1500,
-        messages: [{ role: "system", content: SYSTEM }].concat(history.slice(-20))
-      })
-    });
-
-    if (!r.ok) {
-      const details = (await r.text()).slice(0, 300);
-      el.textContent = "जवाब नहीं आ पाया। API error " + r.status + ": " + details;
-      history.pop();
-      return;
+    let r;
+    for (let i = 0; i < 3; i++) {
+      r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        signal: AbortSignal.timeout(60000),
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + API_KEY },
+        body: JSON.stringify({
+          model,
+          ...(model.startsWith("openai/gpt-oss") ? { reasoning_effort: "low" } : {}),
+          stream: true, max_tokens: 1200,
+          messages: [{ role: "system", content: SYSTEM }].concat(history.slice(-6))
+        })
+      });
+      if (r.status !== 429 || i === 2) break;
+      const m = (await r.text()).match(/try again in ([\d.]+)(ms|s)/);
+      const wait = Math.min((m ? parseFloat(m[1]) * (m[2] === "s" ? 1000 : 1) : 5000) + 500, 20000);
+      el.textContent = "थोड़ा रुकिए, जवाब आ रहा है…";
+      await new Promise(res => setTimeout(res, wait));
     }
-
-    if (!r.body) throw new Error("Streaming response उपलब्ध नहीं है");
-    const reader = r.body.getReader();
-    const dec = new TextDecoder();
+    if (!r.ok) {
+      el.textContent = r.status === 429
+        ? "अभी बहुत सवाल आ गए हैं। कृपया 1 मिनट बाद फिर पूछें।"
+        : "जवाब नहीं आ पाया। API error " + r.status + ": " + (await r.text()).slice(0, 200);
+      history.pop(); return;
+    }
+    const reader = r.body.getReader(), dec = new TextDecoder();
     let buf = "";
-
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -246,32 +176,21 @@ async function ask(text) {
       buf = lines.pop() || "";
       for (const ln of lines) {
         if (!ln.startsWith("data:")) continue;
-        const data = ln.slice(5).trim();
-        if (data === "[DONE]") continue;
+        const d = ln.slice(5).trim();
+        if (d === "[DONE]") continue;
         try {
-          const j = JSON.parse(data);
-          full += j.choices?.[0]?.delta?.content || "";
-          if (full) {
-            el.textContent = full;
-            chat.scrollTop = chat.scrollHeight;
-          }
+          full += JSON.parse(d).choices?.[0]?.delta?.content || "";
+          if (full) { el.textContent = full; chat.scrollTop = chat.scrollHeight; }
         } catch (_) {}
       }
     }
-
-    if (!full) {
-      el.textContent = "जवाब नहीं आया। इंटरनेट कनेक्शन जाँचकर दोबारा कोशिश करें।";
-      history.pop();
-    } else {
-      history.push({ role: "assistant", content: full });
-    }
+    if (!full) { el.textContent = "जवाब नहीं आया। दोबारा कोशिश करें।"; history.pop(); }
+    else history.push({ role: "assistant", content: full });
   } catch (e) {
-    el.textContent = "कनेक्शन में दिक्कत हुई: " + (e?.message || "Unknown error") + "। इंटरनेट/API key जाँचें और फिर कोशिश करें।";
+    el.textContent = "कनेक्शन में दिक्कत हुई: " + (e?.message || "Unknown") + "। इंटरनेट/API key जाँचें।";
     history.pop();
   } finally {
-    busy = false;
-    send.disabled = false;
-    chat.scrollTop = chat.scrollHeight;
+    busy = false; send.disabled = false; chat.scrollTop = chat.scrollHeight;
   }
 }
 
@@ -279,125 +198,68 @@ document.getElementById("f").addEventListener("submit", e => {
   e.preventDefault();
   const v = t.value.trim();
   if (!v || busy) return;
-  t.value = "";
-  t.style.height = "48px";
+  t.value = ""; t.style.height = "48px";
   ask(v);
 });
-
-t.addEventListener("input", () => {
-  t.style.height = "48px";
-  t.style.height = Math.min(t.scrollHeight, 120) + "px";
-});
-
+t.addEventListener("input", () => { t.style.height = "48px"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; });
 t.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    document.getElementById("f").requestSubmit();
-  }
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); document.getElementById("f").requestSubmit(); }
 });
-
 document.getElementById("chips").addEventListener("click", e => {
-  const button = e.target.closest("button");
-  if (button && !busy) ask(button.textContent);
+  const b = e.target.closest("button");
+  if (b && !busy) ask(b.textContent);
 });
 
 /* Microphone / voice typing */
-const mic = document.getElementById("mic");
-const voiceLang = document.getElementById("voice-lang");
-const SpeechRecognitionAPI =
-  window.SpeechRecognition || window.webkitSpeechRecognition;
-
-let recognition = null;
-let listening = false;
-
-function setMicState(active) {
-  listening = active;
-  mic.classList.toggle("listening", active);
-  mic.textContent = active ? "⏹" : "🎤";
-  mic.setAttribute("aria-label", active ? "बोलना रोकें" : "माइक से बोलें");
-  mic.title = active ? "बोलना रोकें" : "माइक से बोलें";
+const mic = document.getElementById("mic"), voiceLang = document.getElementById("voice-lang");
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null, listening = false;
+function setMic(a) {
+  listening = a;
+  mic.classList.toggle("listening", a);
+  mic.textContent = a ? "⏹" : "🎤";
+  mic.setAttribute("aria-label", a ? "बोलना रोकें" : "माइक से बोलें");
 }
-
-if (!SpeechRecognitionAPI) {
+if (!SR) {
   mic.addEventListener("click", () => {
-    errorNote.textContent =
-      "इस Android WebView में voice recognition उपलब्ध नहीं है। Chrome या कीबोर्ड के voice typing का इस्तेमाल करें।";
+    errorNote.textContent = "इस ऐप में voice recognition उपलब्ध नहीं है। कीबोर्ड के voice typing का इस्तेमाल करें।";
   });
 } else {
-  recognition = new SpeechRecognitionAPI();
+  recognition = new SR();
   recognition.continuous = false;
   recognition.interimResults = true;
   recognition.maxAlternatives = 1;
-
-  recognition.onstart = () => {
-    errorNote.textContent = "सुन रहा हूँ… अब बोलें।";
-    setMicState(true);
-  };
-
-  recognition.onresult = event => {
-    let finalText = "";
-    let interimText = "";
-
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const transcript = event.results[i][0].transcript;
-      if (event.results[i].isFinal) finalText += transcript;
-      else interimText += transcript;
+  recognition.onstart = () => { errorNote.textContent = "सुन रहा हूँ… अब बोलें।"; setMic(true); };
+  recognition.onresult = ev => {
+    let fin = "", tmp = "";
+    for (let i = ev.resultIndex; i < ev.results.length; i++) {
+      const tr = ev.results[i][0].transcript;
+      if (ev.results[i].isFinal) fin += tr; else tmp += tr;
     }
-
-    const spoken = (finalText || interimText).trim();
-    if (spoken) {
-      t.value = spoken;
-      t.style.height = "48px";
-      t.style.height = Math.min(t.scrollHeight, 120) + "px";
-    }
+    const s = (fin || tmp).trim();
+    if (s) { t.value = s; t.style.height = "48px"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; }
   };
-
-  recognition.onerror = event => {
-    const messages = {
-      "not-allowed":
-        "माइक की अनुमति नहीं मिली। Android Settings में ऐप की Microphone permission चालू करें।",
-      "service-not-allowed":
-        "Voice recognition की अनुमति नहीं है। Chrome में आज़माएँ।",
-      "no-speech":
-        "आवाज़ सुनाई नहीं दी। दोबारा माइक दबाकर बोलें।",
-      "network":
-        "Voice recognition के लिए नेटवर्क में दिक्कत हुई। इंटरनेट जाँचें।",
-      "audio-capture":
-        "माइक नहीं मिला। माइक की अनुमति और डिवाइस जाँचें।"
+  recognition.onerror = ev => {
+    const msg = {
+      "not-allowed": "माइक की अनुमति नहीं मिली। Settings में ऐप की Microphone permission चालू करें।",
+      "service-not-allowed": "Voice recognition की अनुमति नहीं है।",
+      "no-speech": "आवाज़ सुनाई नहीं दी। दोबारा माइक दबाकर बोलें।",
+      "network": "Voice recognition के लिए नेटवर्क में दिक्कत हुई।",
+      "audio-capture": "माइक नहीं मिला। अनुमति और डिवाइस जाँचें।"
     };
-
-    errorNote.textContent =
-      messages[event.error] || ("माइक में समस्या: " + event.error);
-    setMicState(false);
+    errorNote.textContent = msg[ev.error] || ("माइक में समस्या: " + ev.error);
+    setMic(false);
   };
-
   recognition.onend = () => {
-    setMicState(false);
-    if (t.value.trim()) {
-      errorNote.textContent = "टेक्स्ट बॉक्स में आया है। भेजने के लिए ↑ दबाएँ।";
-    }
+    setMic(false);
+    if (t.value.trim()) errorNote.textContent = "टेक्स्ट बॉक्स में आया है। भेजने के लिए ↑ दबाएँ।";
   };
-
   mic.addEventListener("click", () => {
-    if (listening) {
-      recognition.stop();
-      return;
-    }
-
-    if (busy) {
-      errorNote.textContent = "जवाब आने तक रुकें, फिर माइक इस्तेमाल करें।";
-      return;
-    }
-
+    if (listening) { recognition.stop(); return; }
+    if (busy) { errorNote.textContent = "जवाब आने तक रुकें, फिर माइक इस्तेमाल करें।"; return; }
     errorNote.textContent = "";
     recognition.lang = voiceLang.value;
-
-    try {
-      recognition.start();
-    } catch (err) {
-      errorNote.textContent =
-        "माइक शुरू नहीं हो पाया। थोड़ी देर बाद दोबारा कोशिश करें।";
-    }
+    try { recognition.start(); } catch (err) { errorNote.textContent = "माइक शुरू नहीं हो पाया। थोड़ी देर बाद कोशिश करें।"; }
   });
 }
 </script>
