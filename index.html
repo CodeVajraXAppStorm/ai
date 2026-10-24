@@ -114,8 +114,8 @@ const PHOTOS = [
   ["amber-kasturi-vaskshep", "Amber kasturi vaskshep", "amber kasturi vaskshep|amber vaskshep|kasturi vaskshep"],
   ["agar-chandan-vaskshep", "Agar chandan vaskshep", "agar chandan vaskshep|agar vaskshep"],
   ["chandan-chandan-vaskshep", "Chandan chandan vaskshep", "chandan chandan vaskshep|chandan vaskshep"],
-  ["sukhad-churn", "Shuddh sukhad churn", "sukhad churn|shuddh sukhad churn"],
-  ["sukhad-kashth", "Sukhad kashth (lakdi)", "sukhad kashth|sukhad lakdi|sukhad kast"],
+  ["sukhad-churn", "Shuddh sukhad churn", "sukhad churn|shuddh sukhad churn|sukhad|sukhar"],
+  ["sukhad-kashth", "Sukhad kashth (lakdi)", "sukhad kashth|sukhad lakdi|sukhad kast|sukhad"],
   ["ghee", "Desi gay ghee", "ghee|desi ghee"],
   ["asal-ashtagandh", "Asal (Pila) ashtagandh", "asal ashtagandh|asli ashtagandh|pila ashtagandh|yellow ashtagandh|ashtagandh|ashtgandh"],
   ["lal-ashtagandh", "Lal ashtagandh", "lal ashtagandh|ashtagandh|ashtgandh"],
@@ -130,7 +130,7 @@ const PHOTOS = [
   ["hiranya-gugal", "Asli hiranya gugal", "hiranya gugal|asli hiranya gugal"],
   ["salai-gugal", "Salai gugal (kandru)", "salai gugal|kandru gugal"],
   ["agar-chips", "Agar chips", "agar chips"],
-  ["agar-chuo-ras", "Agar chuo ras", "agar chuo ras|agar chua ras|chuo ras"],
+  ["agar-chuo-ras", "Agar chuo ras", "agar chuo ras|agar chua ras|chuo ras|agar ras|agar ka ras|agar chuo|agar chua|agar cho ras|agar chuva ras|agar chuwa ras"],
   ["kashay", "Kashay churn", "kashay|kashay churn|kasay"],
   ["sadaushadhi", "Sadaushadhi", "sadaushadhi|sad aushadhi"],
   ["mulika", "Mulika varg", "mulika|mulika varg"],
@@ -145,7 +145,7 @@ const PHOTOS = [
   ["panchratna-potli", "Panchratna potli", "panchratna potli|panchratan potli"],
   ["kesar-kashmiri", "Kesar kashmiri", "kesar kashmiri|kashmiri kesar|kesar"],
   ["kapoor", "Kapoor", "kapoor|kapur|camphor"],
-  ["chandan-sukhad", "Chandan sukhad (dabbi)", "chandan sukhad|sukhad chandan"],
+  ["chandan-sukhad", "Chandan sukhad (dabbi)", "chandan sukhad|sukhad chandan|sukhad"],
   ["small-set", "18 Abhishek Small set", "small set|chhota set"],
   ["half-set", "18 Abhishek Half set", "half set"],
   ["full-set", "18 Abhishek Mota (full) set", "full set|mota set"],
@@ -203,17 +203,19 @@ function lev(a, b) {
     d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
   return d[a.length][b.length];
 }
-const KEYLIST = PHOTOS.flatMap(p => p[2].split("|").map(k => { const nk = norm(k), ws = nk.split(" "); return { p, ws, sk: ws.map(skel).join("") }; }));
+const STOP = new Set("किस किसी कुछ कौन कब कहाँ कहां कैसे क्या का की के को से में मैं मे तो है हैं और भी ये यह वो वह मुझे मेरे आप तुम थी था हो कर करो करें करूं करूँ लो दो ना न कोई सब यहाँ वहाँ કયા કોઈ કેમ શું છે ના માં થી તો પણ અને મને મારે કરો કરું".split(" "));
+const FILL = new Set("ki ka ke ko me mein se hai he hain ye yeh wo woh aur bhi to की का के को में से है हैं ये वो और भी तो ની નો ના નું માં થી છે અને પણ".split(" "));
+const KEYLIST = PHOTOS.flatMap(p => p[2].split("|").map(k => { const nk = norm(k), ws = nk.split(" ").filter(w => !FILL.has(w)); return { p, ws, sk: ws.map(skel).join("") }; }));
 function matchPhotos(n) {
-  const words = n.split(" ").filter(Boolean), hits = [];
+  const words = n.split(" ").filter(w => w && !FILL.has(w)), hits = [];
   for (const k of KEYLIST) {
     const kn = k.ws.length, L = k.sk.length;
     let ok = false, span = null;
     for (let sz = Math.max(1, kn - 1); sz <= kn + 1 && !ok; sz++)
       for (let i = 0; i + sz <= words.length && !ok; i++) {
         const win = words.slice(i, i + sz);
-        if (L <= 2) { const kr = k.ws.join(""), raw = win.join(""); ok = lev(raw, kr) <= (kr.length >= 5 ? 1 : 0) || (/[\u0900-\u0AFF]/.test(raw) && win.map(skel).join("") === k.sk); }
-        else ok = lev(win.map(skel).join(""), k.sk) <= (L <= 6 ? 0 : 1);
+        if (L <= 2) { const kr = k.ws.join(""), raw = win.join(""); ok = lev(raw, kr) <= (kr.length >= 5 ? 1 : 0) || (/[\u0900-\u0AFF]/.test(raw) && !STOP.has(raw) && win.map(skel).join("") === k.sk); }
+        else ok = lev(win.map(skel).join(""), k.sk) <= (L <= 8 ? 0 : 1);
         if (ok) span = [i, i + sz - 1];
       }
     if (ok) hits.push({ p: k.p, s: span[0], e: span[1] });
@@ -274,8 +276,8 @@ const RD = {
  "asal-ashtagandh":["असल (पीला) अष्टगंध",[200],"1 gm"], "lal-ashtagandh":["लाल अष्टगंध",[200],"1 dabbi"],
  "indra-churn":["इंद्रचूर्ण औषधि",[20000],""], "divya-churn":["दिव्य चूर्ण",[20000],""], "divya-anjan":["दिव्य अंजन",[20000],"25 gm"],
  "tirthjal":["108 नदी तीर्थजल",[1000],"1 ltr"], "mangal-mati":["मंगल माटी (108 नदी तीर्थ)",[1000],""],
- "ras-gugal":["रस गुगल / भेंस गुगल",[1000],""], "desi-gugal":["असली देशी गुगल",[1500],""], "hiranya-gugal":["असली हिरण्य गुगल",[3500],""], "salai-gugal":["सलाई गुगल कंदरू",[800],""],
- "agar-chips":["असली अगर चिप्स",[2000,4800],"","Asli agar chips"], "agar-chuo-ras":["अगर चुओ रस",[5000],"25 gm"],
+ "ras-gugal":["रस गुगल / भेंस गुगल",[1000],"1 kg"], "desi-gugal":["असली देशी गुगल",[1500],"1 kg"], "hiranya-gugal":["असली हिरण्य गुगल",[3500],"1 kg"], "salai-gugal":["सलाई गुगल कंदरू",[800],"1 kg"],
+ "agar-chips":["असली अगर चिप्स",[2000,4800],"10 gm","Asli agar chips"], "agar-chuo-ras":["अगर चुओ रस",[5000],"25 gm"],
  "kashay":["कषाय चूर्ण",[1200],"1 kg"], "sadaushadhi":["सदौषधि",[1200],"1 kg"], "mulika":["मूलिका वर्ग",[1200],"1 kg"], "prathmashtak":["प्रथमाष्टक",[1200],"1 kg"], "dwitiyashtak":["द्वितीयाष्टक",[1200],"1 kg"],
  "raksha-potli":["रक्षा पोटली",[],""], "mindhol":["मिंढोल",[],""], "darbh-pudi":["दर्भ पुड़ी",[],""], "sarsav-pack":["सरसव पेक",[],""],
  "sona-varakh":["सोना वरख",[400],"1 patti"], "panchratna-churn":["पंचरत्न चूर्ण",[200],"1 pack"], "panchratna-potli":["पंचरत्न पोटली",[200],"1 nang"],
@@ -289,7 +291,7 @@ const RD = {
  "ooncha-suprabhat":["सुप्रभात अत्तर",[700],"10 ml"], "ooncha-kshamama":["क्षमामां अत्तर",[1200],"10 ml"]
 };
 const PN = Object.fromEntries(PHOTOS.map(p => [p[0], p[1]]));
-for (const id in RD) { const it = RD[id], m = it[2].match(/^(\d+)\s+(\w+)$/); it.h = it[0]; it.r = it[1]; it.un = m ? +m[1] : 0; it.uk = m ? m[2] : ""; it.rn = it[3] || PN[id]; it.noQty = id === "agar-chips"; }
+for (const id in RD) { const it = RD[id], m = it[2].match(/^(\d+)\s+(\w+)$/); it.h = it[0]; it.r = it[1]; it.un = m ? +m[1] : 0; it.uk = m ? m[2] : ""; it.rn = it[3] || PN[id]; it.noQty = false; }
 const ul = (k, L) => L === 0 ? U[k][0] : tx([0, U[k][1]], L);
 const nm = (id, L) => L === 0 ? RD[id].rn : tx([0, RD[id].h], L);
 const rt = (it, L) => "Rs. " + it.r.join(" / ") + (it.r.length > 1 ? " " + tx(T.q, L) : "");
@@ -299,6 +301,7 @@ const EXH = [["sona varakh 1 patti Rs. 400","सोना वरख 1 पत्�
 const SETNAME = { "small-set":["Small set","स्मॉल सेट"], "half-set":["Half set","हाफ सेट"], "full-set":["Mota (full) set","मोटा (फुल) सेट"] };
 const setRate = (id, L) => tx(SETNAME[id], L) + ": Rs. " + RD[id].r[0] + (id === "small-set" ? tx(T.smallx, L) : "");
 function setContents(id, L) {
+  if (id === "small-set") return setRate(id, L);   // list me small set ke neeche sirf rate likha hai
   const items = SETN.map(x => tx(x, L)).join("\n");
   if (id === "half-set") return [tx(T.half, L) + "\n" + items, tx(T.nothalf, L) + "\n" + EXH.map(x => tx(x, L)).join("\n")].join("\n\n");
   return [tx(SETNAME[id], L) + " Rs. " + RD[id].r[0] + (id === "small-set" ? tx(T.smallx, L) : ""), tx(T.au50, L) + "\n" + items, tx(T.saath, L) + "\n" + EXF.map(x => tx(x, L)).join("\n")].join("\n\n");
@@ -307,18 +310,36 @@ const GR = {
   shakrastav: [["Shakrastav abhishek aushadhi (1 kg):","शक्रस्तव अभिषेक औषधि (1 किलो):"], ["sarv-aushadhi","sugandhi-aushadhi","green-sugandhi","nitya-sugandhi","sarv-sugandhi","lal-aushadhi","blue-piya","jatamanshi","kesudo","desi-gulab","desi-jasud","sugandhi-valo","yellow-sugandhi-mati","orange-sugandhi-mati","damro","nagar-mutha","tulsi","lavangashtak","kapoor-kachli","bacha","malay-chandan"]],
   ab18: [["18 Abhishek aushadhi (1 kg):","18 अभिषेक औषधि (1 किलो):"], ["kashay","sadaushadhi","mulika","prathmashtak","dwitiyashtak","sarv-aushadhi","sugandhi-aushadhi","lavangashtak","kesudo"]],
   vaskshep: [["Vaskshep (1 kg):","वासक्षेप (1 किलो):"], ["chandan-aushadhi-vaskshep","sugandhi-aushadhi-vaskshep","sugandhi-lal-vaskshep","amber-kasturi-vaskshep","agar-chandan-vaskshep","chandan-chandan-vaskshep"]],
-  gugal: [["Gugal:","गुगल:"], ["ras-gugal","desi-gugal","hiranya-gugal","salai-gugal"]],
+  gugal: [["Gugal (1 kg):","गुगल (1 किलो):"], ["ras-gugal","desi-gugal","hiranya-gugal","salai-gugal"]],
   ooncha: [["Ooncha attar 10 ml:","ऊंचा अत्तर 10 ml:"], ["ooncha-kasturi","ooncha-brutmusk","ooncha-amber","ooncha-chandan","ooncha-agar","ooncha-khas","ooncha-kesar","ooncha-gulab","ooncha-mukhvilas","ooncha-suprabhat","ooncha-kshamama"]]
 };
 const groupText = (k, L) => tx(GR[k][0], L) + "\n" + GR[k][1].map(id => nm(id, L) + ": " + rt(RD[id], L)).join("\n");
 const attarText = L => tx(T.a8, L) + "\n" + tx(["Mogro\nKevdo\nGulab\nChandan\nChameli\nJasmine","मोगरो\nकेवड़ो\nगुलाब\nचंदन\nचमेली\nजस्मीन"], L) + "\n\n" + groupText("ooncha", L);
 const setsText = L => (L === 0 ? "18 Abhishek set:" : tx(["","18 अभिषेक सेट:"], L)) + "\n" + ["small-set","half-set","full-set"].map(id => setRate(id, L)).join("\n");
 
+const RUP = "₹|rs\\.?(?![a-z])|rupe[a-z]*|रुपय[\\p{L}\\p{M}]*|रुपए|रुप्य[\\p{L}\\p{M}]*|रु(?![\\p{L}\\p{M}])|રૂપિયા|રૂ(?![\\p{L}\\p{M}])";
+const RUP_RE = new RegExp("(?:" + RUP + ")", "iu");
+const WUNIT = "kg|kgs|kilo|किलो|કિલો|gm|gms|gram|grams|g|ग्राम|ગ્રામ|ltr|litre|liter|लीटर|લીટર|ml|dabbi|डब्बी|ડબ્બી|patti|पत्ती|nang|नग|નંગ|pack|पैक|bottle|बोतल|બોટલ";
+function priceInfo(text) {
+  let t = text.toLowerCase().replace(/[०-९૦-૯]/g, c => DIG[c]).replace(/(\d),(\d)/g, "$1$2");
+  t = t.replace(/(18|108)\s*(abhishek|nadi|अभिषेक|नदी|અભિષેક|નદી)/g, " ").replace(/50\s*\/\s*50/g, " ");
+  t = t.replace(new RegExp("\\d+(?:\\.\\d+)?\\s*(?:" + WUNIT + ")(?![\\p{L}\\p{M}])", "giu"), " ");
+  const nums = (t.match(/\d+(?:\.\d+)?/g) || []).map(Number).filter(v => v >= 10);
+  if (!nums.length) return null;
+  const mk = RUP_RE.test(t);
+  const lt = /se kam|kam se|less than|under|below|niche|neeche|से कम|कम से|नीचे|ઓછ|નીચે/.test(t);
+  const le = /\btak\b|andar|within|budget|तक|अंदर|સુધી|અંદર/.test(t);
+  const gt = /se zyada|se jyada|zyada se|jyada se|upar|above|over|more than|se mehng|से ज्यादा|से ज़्यादा|ज्यादा से|ऊपर|से महंग|વધુ|ઉપર|વધારે/.test(t);
+  if (nums.length >= 2 && /\bto\b|-|between|beech|bich|बीच|\baur\b|और|\bse\b|से|થી|વચ્ચે/.test(t)) return { op: "range", a: Math.min(nums[0], nums[1]), b: Math.max(nums[0], nums[1]), mk };
+  return { op: lt ? "lt" : le ? "le" : gt ? "gt" : "eq", a: nums[0], b: 0, mk };
+}
+const okPrice = (r, p) => p.op === "eq" ? r.includes(p.a) : p.op === "lt" ? Math.min(...r) < p.a : p.op === "le" ? Math.min(...r) <= p.a : p.op === "gt" ? Math.max(...r) > p.a : r.some(x => x >= p.a && x <= p.b);
 const DIG = { "०":0,"१":1,"२":2,"३":3,"४":4,"५":5,"६":6,"७":7,"८":8,"९":9,"૦":0,"૧":1,"૨":2,"૩":3,"૪":4,"૫":5,"૬":6,"૭":7,"૮":8,"૯":9 };
 const QU = [["kg",/^(kg|kgs|kilo|kilogram|किलो|કિલો)$/],["gm",/^(gm|gms|gram|grams|g|ग्राम|ગ્રામ)$/],["ltr",/^(ltr|litre|liter|लीटर|લીટર)$/],["dabbi",/^(dabbi|डब्बी|ડબ્બી)$/],["patti",/^(patti|पत्ती|પત્તી)$/],["nang",/^(nang|नग|નંગ)$/],["pack",/^(pack|पैक|પેક)$/],["bottle",/^(bottle|बोतल|બોટલ)$/]];
 function parseQty(text) {
   let t = text.toLowerCase().replace(/[०-९૦-૯]/g, c => DIG[c]);
-  t = t.replace(/(18|108)\s*(abhishek|nadi|अभिषेक|नदी|અભિષેક|નદી)/g, " ").replace(/50\s*\/\s*50/g, " ");
+  t = t.replace(/(\d),(\d)/g, "$1$2").replace(/(18|108)\s*(abhishek|nadi|अभिषेक|नदी|અભિષેક|નદી)/g, " ").replace(/50\s*\/\s*50/g, " ");
+  t = t.replace(new RegExp("(?:" + RUP + ")\\s*\\d+(?:\\.\\d+)?|\\d+(?:\\.\\d+)?\\s*(?:" + RUP + ")", "giu"), " ");
   const m = t.match(/(\d+(?:\.\d+)?)\s*([\p{L}\p{M}]+)?/u);
   if (!m) return null;
   const unit = m[2] ? QU.find(([, re]) => re.test(m[2])) : null;
@@ -333,12 +354,26 @@ function priceFor(it, q) {
   else u = q.k === it.uk ? q.v / it.un : null;
   return u == null ? null : it.r.map(r => Math.round(r * u * 100) / 100);
 }
-function itemLine(id, L, q, n) {
+function budgetAmt(text) {
+  const pi = priceInfo(text); if (!pi) return 0;
+  const q = parseQty(text);
+  return pi.mk || (q && !q.k && q.v >= 50) ? pi.a : 0;
+}
+function budgetLine(it, name, base, amt, L) {
+  const outs = it.r.map(r => {
+    const u = amt / r * it.un;
+    if (it.uk === "kg") { const g = Math.round(u * 1000), kg = Math.floor(g / 1000), gm = g % 1000; return ((kg ? kg + " " + ul("kg", L) : "") + (kg && gm ? " " : "") + (gm ? gm + " " + ul("gm", L) : "")) || "0"; }
+    return Math.round(u * 100) / 100 + " " + ul(it.uk, L);
+  });
+  return tx(["Rs. {a} me","Rs. {a} में","Rs. {a} માં"], L).replace("{a}", amt) + " " + name + ": " + outs.join(" / ") + (it.r.length > 1 ? " " + tx(T.q, L) : "") + "\n(" + base + ")";
+}
+function itemLine(id, L, q, n, amt) {
   const it = RD[id], name = nm(id, L);
   if (!it.r.length) return name + " " + tx(T.only, L) + "\n" + tx(T.contact, L);
   const unit = it.un ? " " + it.un + " " + ul(it.uk, L) : "";
   const base = name + unit + ": " + rt(it, L);
-  if (it.noQty && (q || /quantity|matra|मात्रा|માત્રા|kitna milega|कितना मिलेगा/.test(n))) return base + "\n" + tx(T.qty, L);
+  if (it.noQty && (q || amt || /quantity|matra|मात्रा|માત્રા|kitna milega|कितना मिलेगा/.test(n))) return base + "\n" + tx(T.qty, L);
+  if (amt) return it.un ? budgetLine(it, name, base, amt, L) : base + "\n" + tx(T.qty, L);
   if (!q) return base;
   const tot = priceFor(it, q);
   if (!tot) return base + "\n" + tx(T.qty, L);
@@ -349,9 +384,9 @@ const INTENT = ["rate","rates","kitne","kitna","kitni","kimat","kimmat","price",
 const CONTENT = ["aata","aati","aate","andar","contents","details","detail","jankari","bare","batao","alag","extra","आता","आती","आते","अंदर","बारे","बताओ","जानकारी","अलग","આવે","અંદર","વિશે","કહો","માહિતી","અલગ"].map(norm);
 let lastFound = [];
 function buildReply(text, n, found, L) {
-  const q = parseQty(text), words = n.split(" ");
+  const amt = budgetAmt(text), q = amt ? null : parseQty(text), words = n.split(" ");
   const hasRate = INTENT.some(w => words.includes(w)), hasContent = CONTENT.some(w => n.includes(w));
-  if (!found.length && q && lastFound.length) found = lastFound;
+  if (!found.length && (q || amt) && lastFound.length) found = lastFound;
   if (!found.length) return hasRate ? tx(T.notin, L) + " " + tx(T.contact, L) : tx(T.jj, L);
   if (found.some(p => p[0] === "grp-shakrastav" || p[0] === "grp-abhishek18")) found = found.filter(p => p[0] !== "grp-aushadhi-ask");
   const parts = [], real = [];
@@ -366,7 +401,7 @@ function buildReply(text, n, found, L) {
     else if (id === "attar") parts.push(attarText(L));
     else if (id === "ooncha-attar") parts.push(groupText("ooncha", L));
     else if (SETNAME[id]) parts.push(hasRate && !hasContent ? setRate(id, L) : setContents(id, L));
-    else if (RD[id]) { real.push(p); parts.push(itemLine(id, L, q, n)); }
+    else if (RD[id]) { real.push(p); parts.push(itemLine(id, L, q, n, amt)); }
   }
   if (real.length) lastFound = real;
   return parts.length ? parts.join("\n\n") : tx(T.jj, L);
@@ -406,18 +441,72 @@ async function AI_CALL(system, user) {
       const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST", signal: ctl.signal,
         headers: { "Content-Type": "application/json", "Authorization": "Bearer " + API_KEY },
-        body: JSON.stringify({ model, temperature: 0, max_tokens: 80, response_format: { type: "json_object" },
+        body: JSON.stringify({ model, temperature: 0, max_tokens: 120, response_format: { type: "json_object" },
           messages: [{ role: "system", content: system }, { role: "user", content: user }] })
       });
       clearTimeout(tm);
-      if (!r.ok) continue;
+      if (!r.ok) { AI_ERR = "HTTP " + r.status; continue; }
       const j = await r.json();
       return j.choices?.[0]?.message?.content || "";
-    } catch (e) { clearTimeout(tm); }
+    } catch (e) { clearTimeout(tm); AI_ERR = e.name || "network"; }
   }
   return null;
 }
 /*AI-END*/
+
+// ---- Lists / ranking: "sabse mehngi aushadhi", "jitni bhi aushadhi hain sabke rate" ----
+const SC = { aushadhi:["aushadhi","औषधि","ઔષધિ"], vaskshep:["vaskshep","वासक्षेप","વાસક્ષેપ"], gugal:["gugal","गुगल","ગુગલ"], attar:["attar","अत्तर","અત્તર"], ooncha:["ooncha attar","ऊंचा अत्तर","ઊંચા અત્તર"], sets:["set","सेट","સેટ"], pooja:["pooja samagri","पूजा सामग्री","પૂજા સામગ્રી"], all:["sab cheezein","सभी चीज़ें","બધી વસ્તુઓ"] };
+const PH = { eq:["Rs. {a} wale {s}:","Rs. {a} वाली {s}:","Rs. {a} ની {s}:"], lt:["Rs. {a} se kam wale {s}:","Rs. {a} से कम वाली {s}:","Rs. {a} થી ઓછી {s}:"], le:["Rs. {a} tak ke {s}:","Rs. {a} तक की {s}:","Rs. {a} સુધીની {s}:"], gt:["Rs. {a} se zyada wale {s}:","Rs. {a} से ज़्यादा वाली {s}:","Rs. {a} થી વધુ {s}:"], range:["Rs. {a} se Rs. {b} ke beech ke {s}:","Rs. {a} से Rs. {b} के बीच की {s}:","Rs. {a} થી Rs. {b} વચ્ચેની {s}:"] };
+const NOMATCH = ["Is rate ki koi cheez list me nahi hai.","इस रेट की कोई चीज़ लिस्ट में नहीं है।","આ રેટની કોઈ વસ્તુ યાદીમાં નથી."];
+const LH = { max:["Sabse zyada rate ({s}):","सबसे ज़्यादा रेट ({s}):","સૌથી વધુ રેટ ({s}):"], min:["Sabse kam rate ({s}):","सबसे कम रेट ({s}):","સૌથી ઓછો રેટ ({s}):"], all:["{s} ke rate:","{s} के रेट:","{s} ના રેટ:"] };
+function scopeIds(sc) {
+  const rated = Object.keys(RD).filter(id => RD[id].r.length), att = rated.filter(id => /^(attar|ooncha)-/.test(id));
+  const aus = [...new Set([...GR.shakrastav[1], ...GR.ab18[1]])], sets = ["small-set","half-set","full-set"];
+  if (sc === "aushadhi") return aus;
+  if (sc === "vaskshep") return GR.vaskshep[1];
+  if (sc === "gugal") return GR.gugal[1];
+  if (sc === "ooncha") return GR.ooncha[1];
+  if (sc === "attar") return att;
+  if (sc === "sets") return sets;
+  if (sc === "pooja") { const ex = new Set([...aus, ...GR.vaskshep[1], ...GR.gugal[1], ...att, ...sets]); return rated.filter(id => !ex.has(id)); }
+  return rated;
+}
+const lineU = (id, L) => { const it = RD[id]; return nm(id, L) + (it.un ? " " + it.un + " " + ul(it.uk, L) : "") + ": " + rt(it, L); };
+function listReply(li, L) {
+  const { scope, sort, top, price } = li, sc = SC[scope][L === 2 ? 2 : L];
+  if (!sort && !price) {
+    if (scope === "attar") return attarText(L);
+    if (scope === "sets") return setsText(L);
+    if (scope === "vaskshep" || scope === "gugal" || scope === "ooncha") return groupText(scope, L);
+    if (scope === "all") return ["aushadhi","vaskshep","pooja","attar","sets"].map(s => listReply({ scope: s }, L)).join("\n\n");
+  }
+  let ids = scopeIds(scope);
+  const hd = price ? PH[price.op][L].replace("{a}", price.a).replace("{b}", price.b).replace("{s}", sc) : null;
+  if (price) { ids = ids.filter(id => okPrice(RD[id].r, price)); if (!ids.length) return NOMATCH[L]; }
+  if (!sort) return (hd || LH.all[L].replace("{s}", sc)) + "\n" + ids.map(id => lineU(id, L)).join("\n");
+  const key = id => sort === "max" ? Math.max(...RD[id].r) : Math.min(...RD[id].r);
+  ids = ids.slice().sort((a, b) => sort === "max" ? key(b) - key(a) : key(a) - key(b));
+  const sel = top > 1 ? ids.slice(0, top) : ids.filter(id => key(id) === key(ids[0]));
+  return (hd || LH[sort][L].replace("{s}", sc)) + "\n" + sel.map(id => lineU(id, L)).join("\n");
+}
+function localListIntent(text, hasItem) {
+  const s = text.toLowerCase() + " ";
+  const mx = /mehng|mahng|mahang|expensive|costly|highest|महंग|महँग|મોંઘ|સૌથી વધુ|सबसे ज्यादा|सबसे ज़्यादा|sabse zyada|sabse jyada/.test(s);
+  const mn = /sast|cheap|lowest|सस्त|સસ્ત|સૌથી ઓછ|सबसे कम|sabse kam/.test(s);
+  const all = /sabhi|sabke|sab ke|sabka|sab ka|sari |saari|saare|jitni|jitne|jitna|poori|puri list|full list|\ball\b|सभी|सबके|सब के|सबका|सारी|सारे|जितनी|जितने|पूरी|બધી|બધા|આખી/.test(s);
+  let pi = priceInfo(text);
+  if (pi && hasItem) pi = null;
+  if (!(mx || mn || all || pi)) return null;
+  let scope = /ooncha|ऊंचा|ऊँचा|ઊંચા|unch/.test(s) && /attar|atar|itar|itr|ittar|अत्तर|अतर|इत्र|इतर|इत्तर|અત્તર|ઇત્ર/.test(s) ? "ooncha"
+    : /aushadhi|aushadi|औषधि|औषधी|ઔષધિ|ઔષધી/.test(s) ? "aushadhi" : /vaskshep|वासक्षेप|વાસક્ષેપ/.test(s) ? "vaskshep" : /gugal|गुगल|ગુગલ/.test(s) ? "gugal"
+    : /attar|atar|itar|itr|ittar|अत्तर|अतर|इत्र|इतर|इत्तर|અત્તર|ઇત્ર/.test(s) ? "attar" : /\bsets?\b|सेट|સેટ/.test(s) ? "sets" : /pooja|puja|पूजा|પૂજા/.test(s) ? "pooja" : "";
+  if (!scope) { if (mx || mn || (pi && (pi.mk || pi.op !== "eq")) || /cheez|items?|samagri|saman|सामान|सामग्री|चीज|વસ્તુ|sab kuch|सब कुछ/.test(s)) scope = "all"; else return null; }
+  const tp = s.match(/top\s*(\d+)/);
+  return { scope, sort: mx ? "max" : mn ? "min" : "", top: tp ? +tp[1] : 0, price: pi };
+}
+
+const CONTACT_RE = /whatsapp|watsapp|व्हाट्सएप|व्हाट्सऐप|व्हाट्सअप|वाट्सएप|वॉट्सएप|વોટ્સએપ|વ્હોટ્સએપ|kalpesh|kalpesh|guru ?ji|कल्पेश|गुरु ?जी|કલ્પેશ|ગુરુ ?જી|sampark|samparq|contact|number|nambar|phone|mobile|call|whatsapp|kharid|khareed|order|\bbuy\b|purchase|संपर्क|सम्पर्क|नंबर|नम्बर|फोन|फ़ोन|मोबाइल|खरीद|ऑर्डर|ऑर्डर|બુકિંગ|સંપર્ક|નંબર|ફોન|ખરીદ|ઓર્ડર/i;
+let CI = false, AI_ERR = "";
 let PREF = 1;            // 0 = English/Roman, 1 = Hindi (Devanagari, default), 2 = Gujarati
 let lastBuild = null;
 function langRequest(text) {
@@ -428,9 +517,12 @@ function langRequest(text) {
   return null;
 }
 const AI_IDS = PHOTOS.map(p => p[0] + "=" + p[1]).join("; ");
-const AI_PROMPT = `You classify customer messages for a Jain pooja-samagri shop price bot. The customer may write Hindi, Gujarati or English, in any script, with typos or dictation errors. Reply ONLY with JSON: {"t":"item"|"unknown"|"other","ids":[],"lang":""}.
+const AI_PROMPT = `You classify customer messages for a Jain pooja-samagri shop price bot. The customer may write Hindi, Gujarati or English, in any script, with typos or dictation errors. Reply ONLY with JSON: {"t":"item"|"list"|"unknown"|"other","ids":[],"scope":"","sort":"","n":0,"price":null,"lang":""}.
 t="item": customer asks rate/info/contents/photo of one or more products from the list; put their ids in ids (misspelled names are fine; "set"/"sets" = grp-sets; small/half/mota(full) set = small-set/half-set/full-set; 18 abhishek aushadhi = grp-abhishek18; shakrastav aushadhi = grp-shakrastav; generic vaskshep/gugal/attar/ooncha attar use ids vaskshep/gugal/attar/ooncha-attar).
 t="unknown": asks about a pooja product or rate that is NOT in the list.
+t="list": customer wants MANY items or a ranking (all aushadhi rates, what do you have, most expensive, cheapest, top N): scope = aushadhi|vaskshep|gugal|attar|ooncha|sets|pooja|all; sort = "max" (most expensive) or "min" (cheapest) or ""; n = how many top items (0 = all or ties).
+For price filters ("only Rs.1200 attar", "under 1000", "above 500", "between 500 and 1000") use t="list" with price {"op":"eq"|"lt"|"le"|"gt"|"range","a":number,"b":number}.
+Questions about prices, rates, costliest, cheapest, what items exist are NEVER "other".
 t="other": greeting, random keys/gibberish, off-topic, health/medicine questions, or anything not about shop products.
 lang: "gu","en" or "hi" ONLY if the customer explicitly asks to answer in that language, else "".
 LIST: ` + AI_IDS;
@@ -445,9 +537,9 @@ async function aiClassify(text) {
     return r;
   } catch (e) { return null; }
 }
-function respond(text, n, found) {
-  lastBuild = { text, n, found };
-  add("assistant", buildReply(text, n, found, PREF));
+function respond(text, n, found, li) {
+  lastBuild = { text, n, found, li };
+  add("assistant", (li ? listReply(li, PREF) : buildReply(text, n, found, PREF)) + (CI ? "\n\n" + tx(T.contact, PREF) : ""));
 }
 
 async function ask(text) {
@@ -462,28 +554,35 @@ async function ask(text) {
   const quick = quickReply(text);
   if (quick) { add("assistant", quick); return; }
   const n = norm(text);
+  CI = CONTACT_RE.test(text);
+  if (CI && !matchPhotos(n).some(p => !p[4])) { add("assistant", tx(T.contact, PREF)); return; }
+  const li0 = isPhotoAsk(n) ? null : localListIntent(text, matchPhotos(n).some(p => RD[p[0]] && !SETNAME[p[0]]));
+  if (li0) { respond(text, n, [], li0); return; }
   let found = matchPhotos(n);
   if (found.some(p => !p[4] && (p[0].startsWith("attar-") || p[0].startsWith("ooncha-")))) found = found.filter(p => !p[4]);
   const weak = !found.length || (found.every(p => p[0] === "grp-aushadhi-ask") && n.split(" ").length > 1);
   if (isPhotoAsk(n) && !weak) { await showPhotos(found); lastPhoto = found; return; }
   if (!weak) { lastPhoto = found; respond(text, n, found); return; }
   // pehle se jawab bana hua ho aur sirf bhasha badalni ho (jaise "Gujarati me batao")
-  if (lr !== null && lastBuild && found.length === 0 && n.split(" ").length <= 5) { respond(lastBuild.text, lastBuild.n, lastBuild.found); return; }
+  if (lr !== null && lastBuild && found.length === 0 && n.split(" ").length <= 5) { respond(lastBuild.text, lastBuild.n, lastBuild.found, lastBuild.li); return; }
   // local match nahi mila -> AI sirf samajhne ke liye (jawab ke rate hamesha code se)
   const dots = add("assistant", "···");
+  AI_ERR = "";
   const r = await aiClassify(text);
   dots.remove();
+  if (!r) { add("assistant", navigator.onLine === false ? "इंटरनेट चेक करें" : "इंटरनेट जांचें"); return; }
   if (r && r.lang) { PREF = r.lang === "gu" ? 2 : r.lang === "en" ? 0 : 1; }
+  if (r && r.t === "list" && SC[r.scope]) { respond(text, n, [], { scope: r.scope, sort: r.sort === "max" || r.sort === "min" ? r.sort : "", top: +r.n || 0, price: r.price && r.price.op && +r.price.a ? { op: r.price.op, a: +r.price.a, b: +r.price.b || 0 } : null }); return; }
   if (r && r.t === "item" && r.ids.length) {
     found = r.ids.map(id => PHOTOS.find(p => p[0] === id));
     if (isPhotoAsk(n)) { await showPhotos(found); lastPhoto = found; return; }
     lastPhoto = found; respond(text, n, found); return;
   }
-  if (r && r.t === "item" && lastBuild && r.lang) { respond(lastBuild.text, lastBuild.n, lastBuild.found); return; }
+  if (r && r.t === "item" && lastBuild && r.lang) { respond(lastBuild.text, lastBuild.n, lastBuild.found, lastBuild.li); return; }
   if (r && r.t === "unknown") { add("assistant", tx(T.notin, PREF) + " " + tx(T.contact, PREF)); return; }
   if (found.length) { add("assistant", tx(T.askau, PREF)); return; }
   if (isPhotoAsk(n) && lastPhoto.length && !r) { await showPhotos(lastPhoto); return; }
-  if (!r && lastBuild && lr !== null) { respond(lastBuild.text, lastBuild.n, lastBuild.found); return; }
+  if (!r && lastBuild && lr !== null) { respond(lastBuild.text, lastBuild.n, lastBuild.found, lastBuild.li); return; }
   add("assistant", tx(T.jj, PREF));
 }
 
