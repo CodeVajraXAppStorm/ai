@@ -1,237 +1,560 @@
-<!DOCTYPE html>  <html lang="hi">  
-<head>  
-<meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">  
-<title>Kalpvruksha Jadibuty Bhandar</title>  
-<style>  
-:root{  
-  color-scheme:dark;  
-  --bg:#101010;--fg:#f5f5f5;--mut:#b7b7b7;--card:#222222;  
-  --line:#383838;--acc:#ff8a00;--me:#292929  
-}  
-*{box-sizing:border-box}  
-html,body{height:100%;margin:0}  
-body{  
-  background:var(--bg);color:var(--fg);  
-  font:16px/1.6 system-ui,-apple-system,sans-serif;  
-  display:flex;flex-direction:column;  
-  padding-top:env(safe-area-inset-top)  
-}  
-header{padding:14px 18px;border-bottom:1px solid var(--line);font-size:19px;font-weight:600}  
-#chat{flex:1;overflow-y:auto;padding:18px;max-width:760px;width:100%;margin:0 auto;overscroll-behavior:contain}  
-.hello{text-align:center;margin:8vh 0 18px;font-size:28px}  
-.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}  
-.chips button{  
-  background:#242424;border:1px solid #414141;color:var(--fg);  
-  border-radius:22px;padding:10px 15px;font-size:14px;cursor:pointer  
-}  
-.chips button:active{background:#383838}  
-.m{margin:14px 0;white-space:pre-wrap;overflow-wrap:anywhere}  
-.m.u{background:var(--me);border:1px solid #3b3b3b;padding:10px 14px;border-radius:16px;margin-left:15%}  
-.m.a{font-size:16px}  
-form{  
-  display:flex;align-items:flex-end;gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));  
-  max-width:760px;width:100%;margin:0 auto;background:var(--bg)  
-}  
-textarea{  
-  flex:1;resize:none;min-width:0;border:1px solid #414141;background:#202020;color:var(--fg);  
-  border-radius:22px;padding:12px 16px;font:16px/1.4 system-ui;max-height:120px;min-height:48px  
-}  
-textarea::placeholder{color:#999}  
-textarea:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}  
-#send{  
-  flex:0 0 48px;background:var(--acc);color:#111;border:0;border-radius:50%;  
-  width:48px;height:48px;font-size:25px;font-weight:700;cursor:pointer  
-}  
-#send:disabled{opacity:.55;cursor:wait}  
-#error-note{color:#ffb3a7;font-size:13px;padding:0 18px 8px;max-width:760px;width:100%;margin:0 auto}  
-@media(max-width:700px){.hello{margin-top:8vh} #chat{padding:16px} }  
-</style>  
-</head>  
-<body>  
-<header>Kalpvruksha Jadibuty Bhandar</header>  
-<div id="chat" aria-live="polite">  
-  <div class="hello" id="hello">जय जिनेन्द्र 🙏</div>  
-  <div class="chips" id="chips">  
-    <button type="button">18 abhishek set ka rate?</button>  
-    <button type="button">Ooncha attar ke rate</button>  
-    <button type="button">5 kg sarv aushadhi kitne ki?</button>  
-  </div>  
-</div>  
-<div id="error-note" role="status"></div>  
-<form id="f">  
-  <textarea id="t" rows="1" placeholder="अपना सवाल लिखें / Ask your question..." aria-label="अपना सवाल लिखें / Ask your question"></textarea>  
-  <button id="send" type="submit" aria-label="Bhejein">↑</button>  
-</form>  
-<script>  
-/*  
-  GEMINI API SETUP:  
-  Paste your Google Gemini API key in API_KEY below.  
-  WARNING: A key inside HTML/APK can be extracted by anyone who gets the app.  
-  For a public app, use a secure server-side proxy instead.  
-*/  
-const API_KEY = "AQ.Ab8RN6L0sVMPVzvbwKGJJwrV-d1ab8VFTCv_HNVvhpGhPjGKWg";  
-const MODEL = "gemini-2.5-flash";  const SYSTEM = `Tum "Kalpvruksha Jadibuty Bhandaar" ke natural conversational AI assistant ho. Tumhara kaam dukaan ke rates, Jain puja samagri aur unki basic jankari dena hai. Order mat lo.
-CONVERSATION AUR LANGUAGE RULES:
-
-- Customer ki bhasha har message par pehchano aur usi bhasha me jawab do: Hindi, Gujarati ya English.
-- Roman Hindi (jaise "kitne ka hai", "rate batao"), Roman Gujarati (jaise "ketla nu che", "bhav ketlo") aur English bhi samjho. Hindi/Gujarati apni script me likha ho tab bhi samjho.
-- Baatcheet natural aur friendly rakho, jaise ek helpful dukaan ka assistant baat karta hai. Jawab seedhe, chhote aur sawaal ke mutabik do; bina zarurat har baar greeting mat do.
-- Chhote follow-up ko pichhle messages ke context se samjho. Jaise customer pehle "Sarv aushadhi ka rate?" poochhe aur phir "5 kg kitne ka?" kahe, to samjho ki 5 kg Sarv aushadhi ki baat hai. "Aur iska?", "woh wala", "kitna padega?" jaise follow-up ko bhi recent conversation se jodo. Agar context se do matlab nikalte hon aur pakka samajh na aaye, to ek chhota clarification question poochho; rate ka andaza mat lagao.
-- Customer sirf Hi, Hello, Namaste ya Jai Jinendra kahe aur koi aur sawaal na ho, to uski bhasha ke hisaab se sirf chhota greeting do, jaise "Jai Jinendra 🙏". Greeting ke baad extra sawaal ya line mat jodo.
-- Roman Hindi/Gujarati me jawab dena theek hai agar customer Roman me likh raha ho. Customer Gujarati script me likhe to Gujarati script me, Hindi me likhe to Hindi me, aur English me likhe to English me jawab do.
-  Jawab me "bhav" shabd kabhi mat likho. Rate ke jawab me sirf cheez ka naam aur Rs. me rakam likho, jaise "Blue Piya (Aparajita) 1 kg: Rs. 1600". Jawab chhote aur seedhe rakho. Neeche diye gaye dukaan ke rate aur niyam bilkul na badlo. NIYAM:
-
-1. Rate sirf neeche ki list se batao. List me jo cheez nahi hai uska rate mat banao; bolo ki Kalpesh Guruji se contact karein: 9879582176. Discount mat do.
-2. Jahan rate me "/" ho (jaise 3500/10000), wahan quality ke hisaab se 2-3 rate hain. Hamesha SAARE rate batao.
-3. Bracket wala naam doosra naam hai. Blue Piya = Aparajita. Jatamanshi = Kali. Desi Gulab = Rajasthani. Doosre naam se puchhe to bhi samjho.
-4. Pila ashtagandh aur Asal ashtagandh ek hi hain: 1 gm ka 200. Lal ashtagandh 1 dabbi ka 200.
-5. Asli agar chips ka rate 2000/4800 (dono batao). Matra mat batao; matra puchhe to bolo Kalpesh Guruji se contact karein.
-6. Per kg wali cheez ka hisaab karna ho (jaise 5 kg x 1200 = 6000) to multiply karke batao.
-7. Koi shakrastav abhishek ki aushadhi puchhe to "SHAKRASTAV ABHISHEK AUSHADHI" ki saari cheezein rate ke saath batao (1 kg ka rate).
-8. Koi puchhe 18 abhishek me kaun si aushadhi hain to "18 ABHISHEK AUSHADHI" ki saari cheezein "1 kg" bolkar rate ke saath batao.
-9. 18 abhishek set: Small set 500 (sone ke varakh ke saath 900). Half set 700. Mota (full) set 2000.
-10. Mote set me kya aata hai puchhe to: 9 prakar ki aushadhi 50/50 gm (kashay, mangal mati, sad aushadhi, mulika, prathmashtak, dwitiyashtak, sarv aushadhi, pushp churn, sugandhi aushadhi, sugandhi vaskshep, tirth jal, raksha potli, mindhol, darbh pudi, sarsav pack) se shuru karo, phir ye cheezein rate ke saath "attar 1 bottle 100" tak batao: sona varakh 1 patti 400, panchratna churn 1 pack 200, asal ashtagandh 1 gm 200, lal ashtagandh 1 dabbi 200, chandan sukhad 1 dabbi 300, kesar kashmiri 1 dabbi 200, kapoor 1 pack 50, kasturi chandan aadi 200, attar 1 bottle 100. Small set ke liye bhi yahi tareeka.
-11. Half set me kya aata hai puchhe to SIRF itna batao, bilkul isi tarah: "9 prakar ki aushadhi 50/50 gm set Rs. 700: kashay, mangal mati, sad aushadhi, mulika, prathmashtak, dwitiyashtak, sarv aushadhi, pushp churn, sugandhi aushadhi, sugandhi vaskshep, tirth jal, raksha potli, mindhol, darbh pudi, sarsav pack". Sath me ye bhi batao ki ye cheezein bhi milti hain par 700 me shamil nahi, alag se: sona varakh 1 patti 400, panchratna churn 1 pack 200, panchratna potli 1 nang 200, kasturi chandan kesar 200.
-12. Attar: 8 ml ke sab attar (mogro, kevdo, gulab, chandan, chameli, jasmine) 100 ke. Ooncha (mehnga) attar 10 ml ke, neeche list me. Attar ke baare me puchhe to yahi tareeka.
-13. BASIC JANKARI: Customer puja samagri, abhishek, vaskshep, ashtagandh, gugal, chandan, kesar, attar jaisi cheezon ke baare me basic jankari puchhe (ye kya hai, kis kaam aati hai, kaise use hoti hai) to chhote aur sahi shabdon me batao. Jain puja ki baat adar se karo. Jis baat ka pakka pata na ho wahan andaza mat lagao, bolo ki Kalpesh Guruji se poochh lein: 9879582176. Rate hamesha sirf neeche ki list se do, jankari ke naam par rate mat banao. Bimari ka ilaaj ya dawai ki salah mat do, doctor se poochhne ko kaho. Dukaan aur puja ke alawa doosre topic par vinamrata se mana karo.
-
-LIST (1 kg rate, powder):
-SHAKRASTAV ABHISHEK AUSHADHI: Sarv aushadhi 1200, Sugandhi aushadhi 1200, Green sugandhi 1200, Nitya sugandhi 1200, Sarv sugandhi 1200, Lal aushadhi 1600, Blue Piya (Aparajita) 1600, Jatamanshi (Kali) 1600, Kesudo 500, Desi gulab (Rajasthani) 1600, Desi jasud 1200, Sugandhi valo 1000, Yellow sugandhi mati 1500, Orange sugandhi mati 1500, Damro 1200, Nagar mutha 1000, Tulsi 1200, Lavangashtak (gandh churn) 2000, Kapoor kachli 1600, Bacha/Ghodavaj 800, Malay chandan 2000.
-UTTAM SUGANDHI VASKSHEP: Chandan aushadhi vaskshep 1500, Sugandhi aushadhi vaskshep 1500, Sugandhi lal vaskshep 3000, Amber kasturi vaskshep 10000/15000/20000, Agar chandan vaskshep 10000/15000/20000, Chandan chandan vaskshep 3500/10000.
-Shuddh sukhad churn 16000/25000.
-POOJA UPYOGI DRAVYA: Desi gay desi bilona ghee 1600, Ashtagandh asal 1 gm 200, Lal ashtagandh 1 dabbi 200, Indra churn aushadhi 20000, Divya churn 20000, Divya anjan 25 gm 20000, 108 nadi tirthjal 1 litre 1000, Mangal mati 108 nadi tirth 1000, Ras gugal / Bhens gugal 1000, Asli desi gugal 1500, Asli hiranya gugal 3500, Salai gugal kandru 800, Asli agar chips 2000/4800, Agar chuo ras 25 gm 5000, Sukhad kashth (lakdi) 20000.
-18 ABHISHEK AUSHADHI (1 kg): Kashay churn 1200, Sadaushadhi 1200, Mulika varg 1200, Prathmashtak 1200, Dwitiyashtak 1200, Sarv aushadhi 1200, Sugandhi aushadhi 1200, Gandh churn 2000, Pushp/Kesudo 500.
-ATTAR: 8 ml (mogro, kevdo, gulab, chandan, chameli, jasmine) 100 each. Ooncha attar 10 ml: Kasturi Arham Siddha 700, Brutmusk teekha 700, Amber 1000, Chandan 1000, Agar 1000, Khas/Valo 1000, Kesar 700, Gulab 700, Mukh vilas 500, Suprabhat 700, Kshamamaa 1200.`;
-
-const chat = document.getElementById("chat");
-const t = document.getElementById("t");
-const send = document.getElementById("send");
-const errorNote = document.getElementById("error-note");
-let history = [];
-let busy = false;
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kalpvruksha Jadibuty Bhandar</title>
+<style>
+:root{color-scheme:dark;--bg:#101010;--fg:#f5f5f5;--card:#222;--line:#383838;--acc:#ff8a00;--me:#292929}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+header{padding:14px 18px;border-bottom:1px solid var(--line);font-size:19px;font-weight:600}
+#chat{flex:1;overflow-y:auto;padding:18px;max-width:760px;width:100%;margin:0 auto;overscroll-behavior:contain}
+.hello{text-align:center;margin:8vh 0 18px;font-size:28px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chips button{background:#242424;border:1px solid #414141;color:var(--fg);border-radius:22px;padding:10px 15px;font-size:14px;cursor:pointer}
+.chips button:active{background:#383838}
+.m{margin:14px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.m.u{background:var(--me);border:1px solid #3b3b3b;padding:10px 14px;border-radius:16px;margin-left:15%}
+form{display:flex;align-items:flex-end;gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));max-width:760px;width:100%;margin:0 auto;background:var(--bg)}
+textarea{flex:1;resize:none;min-width:0;border:1px solid #414141;background:#202020;color:var(--fg);border-radius:22px;padding:12px 16px;font:16px/1.4 system-ui;max-height:120px;min-height:48px}
+textarea::placeholder{color:#999}
+textarea:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+#send{flex:0 0 48px;background:var(--acc);color:#111;border:0;border-radius:50%;width:48px;height:48px;font-size:25px;font-weight:700;cursor:pointer}
+#send:disabled{opacity:.55;cursor:wait}
+#mic{flex:0 0 44px;width:44px;height:44px;border-radius:50%;border:1px solid #414141;background:#242424;color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:21px;cursor:pointer;padding:0}
+#mic.listening{background:#b3261e;color:#fff;border-color:#b3261e;animation:p 1.2s infinite}
+#voice-lang{max-width:78px;height:38px;align-self:center;border-radius:12px;border:1px solid #414141;background:#202020;color:var(--fg);font-size:12px;padding:0 4px}
+@keyframes p{50%{box-shadow:0 0 0 5px #b3261e33}}
+#error-note{color:#ffb3a7;font-size:13px;padding:0 18px 8px;max-width:760px;width:100%;margin:0 auto}
+@media(max-width:420px){form{gap:6px;padding-left:8px;padding-right:8px}#mic{flex-basis:40px;width:40px;height:40px}#send{flex-basis:44px;width:44px;height:44px}#voice-lang{max-width:68px;font-size:11px}}
+.gal{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.gal figure{margin:0;width:calc(50% - 4px)}
+.gal img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;border:1px solid #3b3b3b;cursor:zoom-in;display:block}
+.gal figcaption{font-size:13px;color:#b7b7b7;text-align:center;margin-top:2px}
+#zoom{display:none;position:fixed;inset:0;background:#000e;align-items:center;justify-content:center;z-index:9;padding:12px}
+#zoom img{max-width:100%;max-height:100%;border-radius:8px}
+</style>
+</head>
+<body>
+<header>Kalpvruksha Jadibuty Bhandar</header>
+<div id="chat" aria-live="polite">
+  <div class="hello" id="hello">जय जिनेन्द्र 🙏</div>
+  <div class="chips" id="chips">
+    <button type="button">18 abhishek set ka rate?</button>
+    <button type="button">Ooncha attar ke rate</button>
+    <button type="button">5 kg sarv aushadhi kitne ki?</button>
+  </div>
+</div>
+<div id="error-note" role="status" aria-live="polite"></div>
+<form id="f">
+  <textarea id="t" rows="1" placeholder="अपना सवाल लिखें / Ask your question..." aria-label="अपना सवाल लिखें"></textarea>
+  <select id="voice-lang" aria-label="बोलने की भाषा">
+    <option value="hi-IN">हिंदी</option>
+    <option value="gu-IN">ગુજરાતી</option>
+    <option value="en-IN">English</option>
+  </select>
+  <button id="mic" type="button" aria-label="माइक से बोलें">🎤</button>
+  <button id="send" type="submit" aria-label="भेजें">↑</button>
+</form>
+<div id="zoom" onclick="this.style.display='none'"><img id="zoomImg" alt=""></div>
+<script>
+const chat = document.getElementById("chat"), t = document.getElementById("t"), send = document.getElementById("send"), errorNote = document.getElementById("error-note");
+let history = [], busy = false;
 
 function add(role, text) {
-const d = document.createElement("div");
-d.className = "m " + (role === "user" ? "u" : "a");
-d.textContent = text;
-chat.appendChild(d);
-chat.scrollTop = chat.scrollHeight;
-return d;
+  const d = document.createElement("div");
+  d.className = "m " + (role === "user" ? "u" : "a");
+  d.textContent = text;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+  return d;
+}
+
+// Hi / Ok jaise chhote message ka jawab bina AI ke, turant
+const norm = s => s.toLowerCase().replace(/[^\p{L}\p{M}\p{N}\s]/gu, "").replace(/\s+/g, " ").trim();
+const GREET = ["hi","hii","hiii","hello","helo","hey","namaste","namaskar","jai jinendra","jay jinendra","jinendra","जय जिनेन्द्र","जय जिनेंद्र","हाय","हेलो","हैलो","नमस्ते","જય જિનેન્દ્ર","જય જિનેંદ્ર","હાય","હેલો","નમસ્તે"];
+const OKS = ["ok","okay","okk","ok ok","k","thik hai","theek hai","thik he","thik","theek","ओके","ठीक है","ठीक","ઓકે","ઠીક છે","ઠીક"];
+function quickReply(text) {
+  const n = norm(text);
+  if (GREET.includes(n)) return tx(T.jj, PREF);
+  if (OKS.includes(n)) return "Ok";
+  return null;
+}
+
+// ---- Photo: customer photo maange to yahan se dikhti hai (AI ko bheje bina) ----
+// Photo file ka naam: photos/<id>-1.jpg, -2.jpg, -3.jpg (attar ki sirf -1.jpg; chahein to -500gm.jpg, -1kg.jpg). Poori list photos/README.txt me hai
+const PHOTOS = [
+  ["sarv-aushadhi", "Sarv aushadhi", "sarv aushadhi|sarva aushadhi"],
+  ["sugandhi-aushadhi", "Sugandhi aushadhi", "sugandhi aushadhi"],
+  ["lal-aushadhi", "Lal aushadhi", "lal aushadhi"],
+  ["green-sugandhi", "Green sugandhi", "green sugandhi"],
+  ["nitya-sugandhi", "Nitya sugandhi", "nitya sugandhi"],
+  ["sarv-sugandhi", "Sarv sugandhi", "sarv sugandhi"],
+  ["blue-piya", "Blue Piya (Aparajita)", "blue piya|blue|piya|pia|aparajita|aprajita"],
+  ["jatamanshi", "Jatamanshi (Kali)", "jatamanshi|jatamansi"],
+  ["kesudo", "Kesudo (Pushp)", "kesudo|kesuda|pushp churn|pushp"],
+  ["desi-gulab", "Desi gulab (Rajasthani)", "desi gulab|rajasthani gulab"],
+  ["desi-jasud", "Desi jasud", "jasud|desi jasud"],
+  ["sugandhi-valo", "Sugandhi valo", "sugandhi valo|sugandhi vala"],
+  ["yellow-sugandhi-mati", "Yellow sugandhi mati", "yellow sugandhi mati|sugandhi mati|yellow mati"],
+  ["orange-sugandhi-mati", "Orange sugandhi mati", "orange sugandhi mati|sugandhi mati|orange mati"],
+  ["damro", "Damro", "damro"],
+  ["nagar-mutha", "Nagar mutha", "nagar mutha|nagarmotha|nagar motha"],
+  ["tulsi", "Tulsi", "tulsi"],
+  ["lavangashtak", "Lavangashtak (gandh churn)", "lavangashtak|gandh churn|gandhchurn"],
+  ["kapoor-kachli", "Kapoor kachli", "kapoor kachli|kapur kachli"],
+  ["bacha", "Bacha / Ghodavaj", "bacha|ghodavaj|ghoda vaj"],
+  ["malay-chandan", "Malay chandan", "malay chandan"],
+  ["vaskshep", "Vaskshep", "vaskshep|vashkshep|vaskhep|vaskep|vashkep|vaskshp"],
+  ["chandan-aushadhi-vaskshep", "Chandan aushadhi vaskshep", "chandan aushadhi vaskshep"],
+  ["sugandhi-aushadhi-vaskshep", "Sugandhi aushadhi vaskshep", "sugandhi aushadhi vaskshep"],
+  ["sugandhi-lal-vaskshep", "Sugandhi lal vaskshep", "sugandhi lal vaskshep|lal vaskshep"],
+  ["amber-kasturi-vaskshep", "Amber kasturi vaskshep", "amber kasturi vaskshep|amber vaskshep|kasturi vaskshep"],
+  ["agar-chandan-vaskshep", "Agar chandan vaskshep", "agar chandan vaskshep|agar vaskshep"],
+  ["chandan-chandan-vaskshep", "Chandan chandan vaskshep", "chandan chandan vaskshep|chandan vaskshep"],
+  ["sukhad-churn", "Shuddh sukhad churn", "sukhad churn|shuddh sukhad churn"],
+  ["sukhad-kashth", "Sukhad kashth (lakdi)", "sukhad kashth|sukhad lakdi|sukhad kast"],
+  ["ghee", "Desi gay ghee", "ghee|desi ghee"],
+  ["asal-ashtagandh", "Asal (Pila) ashtagandh", "asal ashtagandh|asli ashtagandh|pila ashtagandh|yellow ashtagandh|ashtagandh|ashtgandh"],
+  ["lal-ashtagandh", "Lal ashtagandh", "lal ashtagandh|ashtagandh|ashtgandh"],
+  ["indra-churn", "Indra churn", "indra churn"],
+  ["divya-churn", "Divya churn", "divya churn"],
+  ["divya-anjan", "Divya anjan", "divya anjan"],
+  ["tirthjal", "108 nadi tirthjal", "tirthjal|tirth jal"],
+  ["mangal-mati", "Mangal mati", "mangal mati|mangal mitti"],
+  ["gugal", "Gugal", "gugal|guggul"],
+  ["ras-gugal", "Ras gugal / Bhens gugal", "ras gugal|bhens gugal|bhains gugal"],
+  ["desi-gugal", "Asli desi gugal", "desi gugal|asli gugal|asli desi gugal"],
+  ["hiranya-gugal", "Asli hiranya gugal", "hiranya gugal|asli hiranya gugal"],
+  ["salai-gugal", "Salai gugal (kandru)", "salai gugal|kandru gugal"],
+  ["agar-chips", "Agar chips", "agar chips"],
+  ["agar-chuo-ras", "Agar chuo ras", "agar chuo ras|agar chua ras|chuo ras"],
+  ["kashay", "Kashay churn", "kashay|kashay churn|kasay"],
+  ["sadaushadhi", "Sadaushadhi", "sadaushadhi|sad aushadhi"],
+  ["mulika", "Mulika varg", "mulika|mulika varg"],
+  ["prathmashtak", "Prathmashtak", "prathmashtak|pratham ashtak"],
+  ["dwitiyashtak", "Dwitiyashtak", "dwitiyashtak|dwitiya ashtak"],
+  ["raksha-potli", "Raksha potli", "raksha potli|rakhsha potli"],
+  ["mindhol", "Mindhol", "mindhol|mindhal"],
+  ["darbh-pudi", "Darbh pudi", "darbh pudi|darbh|dabh"],
+  ["sarsav-pack", "Sarsav pack", "sarsav pack|sarsav|sarson"],
+  ["sona-varakh", "Sona varakh", "sona varakh|sone ka varakh|varakh"],
+  ["panchratna-churn", "Panchratna churn", "panchratna churn|panchratan churn"],
+  ["panchratna-potli", "Panchratna potli", "panchratna potli|panchratan potli"],
+  ["kesar-kashmiri", "Kesar kashmiri", "kesar kashmiri|kashmiri kesar|kesar"],
+  ["kapoor", "Kapoor", "kapoor|kapur|camphor"],
+  ["chandan-sukhad", "Chandan sukhad (dabbi)", "chandan sukhad|sukhad chandan"],
+  ["small-set", "18 Abhishek Small set", "small set|chhota set"],
+  ["half-set", "18 Abhishek Half set", "half set"],
+  ["full-set", "18 Abhishek Mota (full) set", "full set|mota set"],
+  ["attar-mogro", "Mogro attar", "mogro attar|mogra attar|mogro|mogra", 1],
+  ["attar-kevdo", "Kevdo attar", "kevdo attar|kewda attar|kevdo|kewda", 1],
+  ["attar-gulab", "Gulab attar (8 ml)", "gulab attar|gulab ka attar", 1],
+  ["attar-chandan", "Chandan attar (8 ml)", "chandan attar", 1],
+  ["attar-chameli", "Chameli attar", "chameli attar|chameli", 1],
+  ["attar-jasmine", "Jasmine attar", "jasmine attar|jasmine|jasmin", 1],
+  ["ooncha-kasturi", "Kasturi Arham Siddha attar", "kasturi attar|kasturi|arham siddha|arham|kasturi arham siddha", 1],
+  ["ooncha-brutmusk", "Brutmusk attar", "brutmusk attar|brutmusk|brut musk", 1],
+  ["ooncha-amber", "Amber attar", "amber attar|amber|ambar attar|ambar", 1],
+  ["ooncha-chandan", "Chandan attar (ooncha)", "chandan attar|ooncha chandan attar", 1],
+  ["ooncha-agar", "Agar attar", "agar attar|agar ka attar", 1],
+  ["ooncha-khas", "Khas / Valo attar", "khas attar|khas|valo attar|khas valo", 1],
+  ["ooncha-kesar", "Kesar attar", "kesar attar|kesar", 1],
+  ["ooncha-gulab", "Gulab attar (ooncha)", "gulab attar|ooncha gulab attar", 1],
+  ["ooncha-mukhvilas", "Mukh vilas attar", "mukh vilas attar|mukh vilas|mukhvilas attar|mukhvilas", 1],
+  ["ooncha-suprabhat", "Suprabhat attar", "suprabhat attar|suprabhat|su prabhat", 1],
+  ["ooncha-kshamama", "Kshamamaa attar", "kshamamaa attar|kshamama attar|kshamama|kshama maa|kshamamaa", 1],
+  ["attar", "Attar", "attar|atar", 0, "Kaunsa attar? 8 ml: Mogro, Kevdo, Gulab, Chandan, Chameli, Jasmine. Ooncha attar: Kasturi Arham Siddha, Brutmusk, Amber, Chandan, Agar, Khas/Valo, Kesar, Gulab, Mukh vilas, Suprabhat, Kshamamaa. Naam likhein, jaise Mogro attar."],
+  ["ooncha-attar", "Ooncha attar", "ooncha attar|uncha attar|unche attar", 0, "Kaunsa ooncha attar? Kasturi Arham Siddha, Brutmusk, Amber, Chandan, Agar, Khas/Valo, Kesar, Gulab, Mukh vilas, Suprabhat, Kshamamaa. Naam likhein, jaise Amber attar."],
+  ["kasturi-chandan-kesar", "Kasturi chandan kesar", "kasturi chandan kesar|kasturi chandan"],
+  ["grp-shakrastav", "Shakrastav abhishek aushadhi", "shakrastav abhishek aushadhi|shakrastav abhishek ki aushadhi|shakrastav abhishek|shakrastav|shakrasthav|shakrastav aushadhi", 0, "Kaunsi aushadhi ki photo chahiye? Naam likhein, jaise Sarv aushadhi, Lal aushadhi, Tulsi."],
+  ["grp-abhishek18", "18 Abhishek aushadhi", "abhishek ki aushadhi|abhishek ke aushadhi|abhishek aushadhi|abhishek ki aushadhiyan|abhishek", 0, "Kaunsi aushadhi ki photo chahiye? Naam likhein, jaise Kashay, Mulika, Sarv aushadhi."],
+  ["grp-sets", "18 Abhishek sets", "18 abhishek set|abhishek set|sets|set|सेट|સેટ", 0, "Kaunse set ki photo chahiye? Small set, Half set ya Mota (full) set likhein."],
+  ["grp-aushadhi-ask", "Aushadhi", "aushadhi|aushadhiyan|aushadi", 0, "Kaunsi aushadhi? Naam likhein, jaise Sarv aushadhi, Sugandhi aushadhi, Lal aushadhi."]
+];
+const zoom = document.getElementById("zoom"), zoomImg = document.getElementById("zoomImg");
+let lastPhoto = [];
+const loadImg = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+
+/*FUZZY-START*/
+// Spelling galti, Hindi/Gujarati/Roman: sab ko "consonant skeleton" me badalkar milate hain
+const DEVMAP = {"क":"k","ख":"k","ग":"g","घ":"g","ङ":"n","च":"c","छ":"c","ज":"j","झ":"j","ञ":"n","ट":"t","ठ":"t","ड":"d","ढ":"d","ण":"n","त":"t","थ":"t","द":"d","ध":"d","न":"n","प":"p","फ":"p","ब":"b","भ":"b","म":"m","य":"y","र":"r","ल":"l","ळ":"l","व":"v","श":"s","ष":"s","स":"s","ं":"n","ँ":"n","\u0958":"k","\u0959":"k","\u095A":"g","\u095B":"j","\u095C":"d","\u095D":"d","\u095E":"p","\u095F":"y"};
+const romanSkel = s => s.replace(/ch/g,"@").replace(/c/g,"k").replace(/@/g,"c")
+  .replace(/sh|kh|gh|th|dh|bh|ph|jh/g, m => m[0]).replace(/w/g,"v").replace(/z/g,"j").replace(/q/g,"k")
+  .replace(/x/g,"ks").replace(/f/g,"p").replace(/h/g,"").replace(/(.)\1+/g,"$1").replace(/[aeiou]/g,"");
+function skel(w) {
+  let out = "", buf = "";
+  const flush = () => { out += romanSkel(buf); buf = ""; };
+  const arr = Array.from(w.normalize("NFC")).map(ch => { const c = ch.charCodeAt(0); return c >= 0x0A81 && c <= 0x0AFF ? String.fromCharCode(c - 0x180) : ch; });
+  for (let i = 0; i < arr.length; i++) {
+    const ch = arr[i], c = ch.charCodeAt(0);
+    if (c >= 0x0900 && c <= 0x097F) { flush(); out += ch === "ं" ? ("पफबभम".includes(arr[i + 1] || "-") ? "m" : "n") : (DEVMAP[ch] || ""); }
+    else buf += ch;
+  }
+  flush();
+  return out.replace(/(.)\1+/g, "$1");
+}
+function lev(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+const KEYLIST = PHOTOS.flatMap(p => p[2].split("|").map(k => { const nk = norm(k), ws = nk.split(" "); return { p, ws, sk: ws.map(skel).join("") }; }));
+function matchPhotos(n) {
+  const words = n.split(" ").filter(Boolean), hits = [];
+  for (const k of KEYLIST) {
+    const kn = k.ws.length, L = k.sk.length;
+    let ok = false, span = null;
+    for (let sz = Math.max(1, kn - 1); sz <= kn + 1 && !ok; sz++)
+      for (let i = 0; i + sz <= words.length && !ok; i++) {
+        const win = words.slice(i, i + sz);
+        if (L <= 2) { const kr = k.ws.join(""), raw = win.join(""); ok = lev(raw, kr) <= (kr.length >= 5 ? 1 : 0) || (/[\u0900-\u0AFF]/.test(raw) && win.map(skel).join("") === k.sk); }
+        else ok = lev(win.map(skel).join(""), k.sk) <= (L <= 6 ? 0 : 1);
+        if (ok) span = [i, i + sz - 1];
+      }
+    if (ok) hits.push({ p: k.p, s: span[0], e: span[1] });
+  }
+  // jis match ke shabd kisi bade match ("ooncha attar", "sugandhi aushadhi") ke andar aate hain, use hata do
+  return [...new Set(hits.filter(x => !hits.some(o => o.p !== x.p && o.s <= x.s && o.e >= x.e && (o.e - o.s) > (x.e - x.s))).map(x => x.p))];
+}
+const PHOTO_RE = /^(ph?ot[ou]*s?|fot[ou]*s?|phto|pics?|pix|pictures?|images?|tas[bv]+(ee?|i)r)$/;
+const PHOTO_SCRIPT = ["फोटो","फ़ोटो","फोटु","फोटू","फ़ोटू","तस्वीर","तसवीर","पिक्चर","इमेज","चित्र","ફોટો","ફોટા","ફોટું","તસવીર","ચિત્ર","પિક્ચર","ઇમેજ"].map(norm);
+const isPhotoAsk = n => n.split(" ").some(w => PHOTO_RE.test(w)) || PHOTO_SCRIPT.some(s => n.includes(s));
+/*FUZZY-END*/
+
+/*ENGINE-START*/
+// ---- Rate engine: sab jawab yahin se, turant, bina internet/AI ke ----
+const U = { kg:["kg","किलो"], gm:["gm","ग्राम"], ltr:["litre","लीटर"], dabbi:["dabbi","डब्बी"], patti:["patti","पत्ती"], nang:["nang","नग"], pack:["pack","पैक"], bottle:["bottle","बोतल"], ml:["ml","ml"] };
+const T = {
+  contact:["Kalpesh Guruji se contact karein: 9879582176","कल्पेश गुरुजी से संपर्क करें: 9879582176"],
+  qty:["Matra ke liye Kalpesh Guruji se contact karein: 9879582176","मात्रा के लिए कल्पेश गुरुजी से संपर्क करें: 9879582176"],
+  notin:["Yeh cheez hamari list me nahi hai.","यह चीज़ हमारी लिस्ट में नहीं है।"],
+  only:["sirf 18 abhishek set ke andar aati hai, alag se rate list me nahi hai.","सिर्फ़ 18 अभिषेक सेट के अंदर आती है, अलग से लिस्ट में रेट नहीं है।"],
+  q:["(quality ke hisaab se)","(क्वालिटी के हिसाब से)"],
+  jj:["Jai Jinendra 🙏","जय जिनेन्द्र 🙏"],
+  au50:["Aushadhi 50/50 gm, 9 prakar ki:","औषधि 50/50 ग्राम, 9 प्रकार की:"],
+  saath:["Iske saath neeche ki vastuen rahengi:","इसके साथ नीचे की वस्तुएं रहेंगी:"],
+  half:["9 prakar ki aushadhi 50/50 gm set Rs. 700:","9 प्रकार की औषधि 50/50 ग्राम सेट Rs. 700:"],
+  nothalf:["Ye cheezein half set me shamil nahi hain, alag se milti hain:","ये चीज़ें हाफ सेट में शामिल नहीं हैं, अलग से मिलती हैं:"],
+  smallx:[" (sone ke varakh ke saath Rs. 900)"," (सोने के वरख के साथ Rs. 900)"],
+  askau:["Kaunsi aushadhi ka rate chahiye? Naam likhein, jaise Sarv aushadhi, Sugandhi aushadhi, Lal aushadhi. Ya Shakrastav abhishek aushadhi / 18 abhishek aushadhi likhein.","कौन सी औषधि का रेट चाहिए? नाम लिखें, जैसे सर्व औषधि, सुगंधी औषधि, लाल औषधि। या शक्रस्तव अभिषेक औषधि / 18 अभिषेक औषधि लिखें।"],
+  a8:["Attar 8 ml, Rs. 100 har ek:","अत्तर 8 ml, Rs. 100 हर एक:"]
+};
+const toGu = s => s.replace(/।/g, ".").replace(/[\u0900-\u0963\u0966-\u097F]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x180));
+const tx = (pr, L) => L === 0 ? pr[0] : L === 2 ? (pr[2] || toGu(pr[1])) : pr[1];
+const GUJ = {
+  contact:"કલ્પેશ ગુરુજીનો સંપર્ક કરો: 9879582176", qty:"જથ્થા માટે કલ્પેશ ગુરુજીનો સંપર્ક કરો: 9879582176",
+  notin:"આ વસ્તુ અમારી યાદીમાં નથી.", only:"ફક્ત 18 અભિષેક સેટની અંદર આવે છે, અલગથી યાદીમાં રેટ નથી.",
+  q:"(ક્વોલિટી પ્રમાણે)", jj:"જય જિનેન્દ્ર 🙏", au50:"ઔષધિ 50/50 ગ્રામ, 9 પ્રકારની:",
+  saath:"આની સાથે નીચેની વસ્તુઓ રહેશે:", half:"9 પ્રકારની ઔષધિ 50/50 ગ્રામ સેટ Rs. 700:",
+  nothalf:"આ વસ્તુઓ હાફ સેટમાં સામેલ નથી, અલગથી મળે છે:", smallx:" (સોનાના વરખ સાથે Rs. 900)",
+  askau:"કઈ ઔષધિનો રેટ જોઈએ? નામ લખો, જેમ કે સર્વ ઔષધિ, સુગંધી ઔષધિ, લાલ ઔષધિ. અથવા શક્રસ્તવ અભિષેક ઔષધિ / 18 અભિષેક ઔષધિ લખો.",
+  a8:"અત્તર 8 ml, દરેકનો Rs. 100:"
+};
+for (const k in GUJ) T[k][2] = GUJ[k];
+const lang = s => /[\u0A80-\u0AFF]/.test(s) ? 2 : /[\u0900-\u097F]/.test(s) ? 1 : 0;
+
+// id: [hindi naam, [rate], "matra unit", roman naam (agar alag chahiye)]
+const RD = {
+ "sarv-aushadhi":["सर्व औषधि",[1200],"1 kg"], "sugandhi-aushadhi":["सुगंधी औषधि",[1200],"1 kg"], "lal-aushadhi":["लाल औषधि",[1600],"1 kg"],
+ "green-sugandhi":["ग्रीन सुगंधी",[1200],"1 kg"], "nitya-sugandhi":["नित्य सुगंधी",[1200],"1 kg"], "sarv-sugandhi":["सर्व सुगंधी",[1200],"1 kg"],
+ "blue-piya":["ब्लू पिया (अपराजिता)",[1600],"1 kg"], "jatamanshi":["जटामांशी (काली)",[1600],"1 kg"], "kesudo":["केसूडो (पुष्प)",[500],"1 kg"],
+ "desi-gulab":["देशी गुलाब (राजस्थानी)",[1600],"1 kg"], "desi-jasud":["देशी जासूद",[1200],"1 kg"], "sugandhi-valo":["सुगंधी वालो",[1000],"1 kg"],
+ "yellow-sugandhi-mati":["यलो सुगंधी माटी",[1500],"1 kg"], "orange-sugandhi-mati":["ऑरेंज सुगंधी माटी",[1500],"1 kg"],
+ "damro":["डमरो",[1200],"1 kg"], "nagar-mutha":["नागर मुथा",[1000],"1 kg"], "tulsi":["तुलसी",[1200],"1 kg"],
+ "lavangashtak":["लवंगाष्टक (गंध चूर्ण)",[2000],"1 kg"], "kapoor-kachli":["कपूर कचली",[1600],"1 kg"], "bacha":["बचा / घोड़ावज",[800],"1 kg"], "malay-chandan":["मलय चंदन",[2000],"1 kg"],
+ "chandan-aushadhi-vaskshep":["चंदन औषधि वासक्षेप",[1500],"1 kg"], "sugandhi-aushadhi-vaskshep":["सुगंधी औषधि वासक्षेप",[1500],"1 kg"],
+ "sugandhi-lal-vaskshep":["सुगंधी लाल वासक्षेप",[3000],"1 kg"], "amber-kasturi-vaskshep":["अंबर कस्तूरी वासक्षेप",[10000,15000,20000],"1 kg"],
+ "agar-chandan-vaskshep":["अगर चंदन वासक्षेप",[10000,15000,20000],"1 kg"], "chandan-chandan-vaskshep":["चंदन चंदन वासक्षेप",[3500,10000],"1 kg"],
+ "sukhad-churn":["शुद्ध सुखड चूर्ण",[16000,25000],"1 kg"], "sukhad-kashth":["सुखड काष्ठ",[20000],""], "ghee":["देशी गाय बिलोना घी",[1600],""],
+ "asal-ashtagandh":["असल (पीला) अष्टगंध",[200],"1 gm"], "lal-ashtagandh":["लाल अष्टगंध",[200],"1 dabbi"],
+ "indra-churn":["इंद्रचूर्ण औषधि",[20000],""], "divya-churn":["दिव्य चूर्ण",[20000],""], "divya-anjan":["दिव्य अंजन",[20000],"25 gm"],
+ "tirthjal":["108 नदी तीर्थजल",[1000],"1 ltr"], "mangal-mati":["मंगल माटी (108 नदी तीर्थ)",[1000],""],
+ "ras-gugal":["रस गुगल / भेंस गुगल",[1000],""], "desi-gugal":["असली देशी गुगल",[1500],""], "hiranya-gugal":["असली हिरण्य गुगल",[3500],""], "salai-gugal":["सलाई गुगल कंदरू",[800],""],
+ "agar-chips":["असली अगर चिप्स",[2000,4800],"","Asli agar chips"], "agar-chuo-ras":["अगर चुओ रस",[5000],"25 gm"],
+ "kashay":["कषाय चूर्ण",[1200],"1 kg"], "sadaushadhi":["सदौषधि",[1200],"1 kg"], "mulika":["मूलिका वर्ग",[1200],"1 kg"], "prathmashtak":["प्रथमाष्टक",[1200],"1 kg"], "dwitiyashtak":["द्वितीयाष्टक",[1200],"1 kg"],
+ "raksha-potli":["रक्षा पोटली",[],""], "mindhol":["मिंढोल",[],""], "darbh-pudi":["दर्भ पुड़ी",[],""], "sarsav-pack":["सरसव पेक",[],""],
+ "sona-varakh":["सोना वरख",[400],"1 patti"], "panchratna-churn":["पंचरत्न चूर्ण",[200],"1 pack"], "panchratna-potli":["पंचरत्न पोटली",[200],"1 nang"],
+ "kesar-kashmiri":["केसर कश्मीरी",[200],"1 dabbi"], "kapoor":["कपूर",[50],"1 pack"], "chandan-sukhad":["चंदन सुखड़",[300],"1 dabbi"], "kasturi-chandan-kesar":["कस्तूरी चंदन केसर",[200],""],
+ "small-set":["स्मॉल सेट",[500],""], "half-set":["हाफ सेट",[700],""], "full-set":["मोटा (फुल) सेट",[2000],""],
+ "attar-mogro":["मोगरो अत्तर",[100],"8 ml"], "attar-kevdo":["केवड़ो अत्तर",[100],"8 ml"], "attar-gulab":["गुलाब अत्तर",[100],"8 ml","Gulab attar"],
+ "attar-chandan":["चंदन अत्तर",[100],"8 ml","Chandan attar"], "attar-chameli":["चमेली अत्तर",[100],"8 ml"], "attar-jasmine":["जस्मीन अत्तर",[100],"8 ml"],
+ "ooncha-kasturi":["कस्तूरी अर्हम सिद्धा अत्तर",[700],"10 ml"], "ooncha-brutmusk":["ब्रुटमुश्क तीखा अत्तर",[700],"10 ml"], "ooncha-amber":["अंबर अत्तर",[1000],"10 ml"],
+ "ooncha-chandan":["चंदन अत्तर",[1000],"10 ml","Chandan attar"], "ooncha-agar":["अगर अत्तर",[1000],"10 ml"], "ooncha-khas":["खस / वालो अत्तर",[1000],"10 ml"],
+ "ooncha-kesar":["केसर अत्तर",[700],"10 ml"], "ooncha-gulab":["गुलाब अत्तर",[700],"10 ml","Gulab attar"], "ooncha-mukhvilas":["मुख विलास अत्तर",[500],"10 ml"],
+ "ooncha-suprabhat":["सुप्रभात अत्तर",[700],"10 ml"], "ooncha-kshamama":["क्षमामां अत्तर",[1200],"10 ml"]
+};
+const PN = Object.fromEntries(PHOTOS.map(p => [p[0], p[1]]));
+for (const id in RD) { const it = RD[id], m = it[2].match(/^(\d+)\s+(\w+)$/); it.h = it[0]; it.r = it[1]; it.un = m ? +m[1] : 0; it.uk = m ? m[2] : ""; it.rn = it[3] || PN[id]; it.noQty = id === "agar-chips"; }
+const ul = (k, L) => L === 0 ? U[k][0] : tx([0, U[k][1]], L);
+const nm = (id, L) => L === 0 ? RD[id].rn : tx([0, RD[id].h], L);
+const rt = (it, L) => "Rs. " + it.r.join(" / ") + (it.r.length > 1 ? " " + tx(T.q, L) : "");
+const SETN = [["kashay","कषाय"],["mangal mati","मंगल माटी"],["sad aushadhi","सद औषधि"],["mulika","मूलिका"],["prathmashtak","प्रथमाष्टक"],["dwitiyashtak","द्वितीयाष्टक"],["sarv aushadhi","सर्व औषधि"],["pushp churn","पुष्प चूर्ण"],["sugandhi aushadhi","सुगंधी औषधि"],["sugandhi vaskshep","सुगंधी वासक्षेप"],["tirth jal","तीर्थजल"],["raksha potli","रक्षा पोटली"],["mindhol","मिंढोल"],["darbh pudi","दर्भ पुड़ी"],["sarsav pack","सरसव पेक"]];
+const EXF = [["sona varakh 1 patti Rs. 400","सोना वरख 1 पत्ती Rs. 400"],["panchratna churn 1 pack Rs. 200","पंचरत्न चूर्ण 1 पैक Rs. 200"],["asal ashtagandh 1 gm Rs. 200","असल अष्टगंध 1 ग्राम Rs. 200"],["lal ashtagandh 1 dabbi Rs. 200","लाल अष्टगंध 1 डब्बी Rs. 200"],["chandan sukhad 1 dabbi Rs. 300","चंदन सुखड़ 1 डब्बी Rs. 300"],["kesar kashmiri 1 dabbi Rs. 200","केसर कश्मीरी 1 डब्बी Rs. 200"],["kapoor 1 pack Rs. 50","कपूर 1 पैक Rs. 50"],["kasturi chandan aadi Rs. 200","कस्तूरी चंदन आदि Rs. 200"],["attar 1 bottle Rs. 100","अत्तर 1 बोतल Rs. 100"]];
+const EXH = [["sona varakh 1 patti Rs. 400","सोना वरख 1 पत्ती Rs. 400"],["panchratna churn 1 pack Rs. 200","पंचरत्न चूर्ण 1 पैक Rs. 200"],["panchratna potli 1 nang Rs. 200","पंचरत्न पोटली 1 नग Rs. 200"],["kasturi chandan kesar Rs. 200","कस्तूरी चंदन केसर Rs. 200"]];
+const SETNAME = { "small-set":["Small set","स्मॉल सेट"], "half-set":["Half set","हाफ सेट"], "full-set":["Mota (full) set","मोटा (फुल) सेट"] };
+const setRate = (id, L) => tx(SETNAME[id], L) + ": Rs. " + RD[id].r[0] + (id === "small-set" ? tx(T.smallx, L) : "");
+function setContents(id, L) {
+  const items = SETN.map(x => tx(x, L)).join("\n");
+  if (id === "half-set") return [tx(T.half, L) + "\n" + items, tx(T.nothalf, L) + "\n" + EXH.map(x => tx(x, L)).join("\n")].join("\n\n");
+  return [tx(SETNAME[id], L) + " Rs. " + RD[id].r[0] + (id === "small-set" ? tx(T.smallx, L) : ""), tx(T.au50, L) + "\n" + items, tx(T.saath, L) + "\n" + EXF.map(x => tx(x, L)).join("\n")].join("\n\n");
+}
+const GR = {
+  shakrastav: [["Shakrastav abhishek aushadhi (1 kg):","शक्रस्तव अभिषेक औषधि (1 किलो):"], ["sarv-aushadhi","sugandhi-aushadhi","green-sugandhi","nitya-sugandhi","sarv-sugandhi","lal-aushadhi","blue-piya","jatamanshi","kesudo","desi-gulab","desi-jasud","sugandhi-valo","yellow-sugandhi-mati","orange-sugandhi-mati","damro","nagar-mutha","tulsi","lavangashtak","kapoor-kachli","bacha","malay-chandan"]],
+  ab18: [["18 Abhishek aushadhi (1 kg):","18 अभिषेक औषधि (1 किलो):"], ["kashay","sadaushadhi","mulika","prathmashtak","dwitiyashtak","sarv-aushadhi","sugandhi-aushadhi","lavangashtak","kesudo"]],
+  vaskshep: [["Vaskshep (1 kg):","वासक्षेप (1 किलो):"], ["chandan-aushadhi-vaskshep","sugandhi-aushadhi-vaskshep","sugandhi-lal-vaskshep","amber-kasturi-vaskshep","agar-chandan-vaskshep","chandan-chandan-vaskshep"]],
+  gugal: [["Gugal:","गुगल:"], ["ras-gugal","desi-gugal","hiranya-gugal","salai-gugal"]],
+  ooncha: [["Ooncha attar 10 ml:","ऊंचा अत्तर 10 ml:"], ["ooncha-kasturi","ooncha-brutmusk","ooncha-amber","ooncha-chandan","ooncha-agar","ooncha-khas","ooncha-kesar","ooncha-gulab","ooncha-mukhvilas","ooncha-suprabhat","ooncha-kshamama"]]
+};
+const groupText = (k, L) => tx(GR[k][0], L) + "\n" + GR[k][1].map(id => nm(id, L) + ": " + rt(RD[id], L)).join("\n");
+const attarText = L => tx(T.a8, L) + "\n" + tx(["Mogro\nKevdo\nGulab\nChandan\nChameli\nJasmine","मोगरो\nकेवड़ो\nगुलाब\nचंदन\nचमेली\nजस्मीन"], L) + "\n\n" + groupText("ooncha", L);
+const setsText = L => (L === 0 ? "18 Abhishek set:" : tx(["","18 अभिषेक सेट:"], L)) + "\n" + ["small-set","half-set","full-set"].map(id => setRate(id, L)).join("\n");
+
+const DIG = { "०":0,"१":1,"२":2,"३":3,"४":4,"५":5,"६":6,"७":7,"८":8,"९":9,"૦":0,"૧":1,"૨":2,"૩":3,"૪":4,"૫":5,"૬":6,"૭":7,"૮":8,"૯":9 };
+const QU = [["kg",/^(kg|kgs|kilo|kilogram|किलो|કિલો)$/],["gm",/^(gm|gms|gram|grams|g|ग्राम|ગ્રામ)$/],["ltr",/^(ltr|litre|liter|लीटर|લીટર)$/],["dabbi",/^(dabbi|डब्बी|ડબ્બી)$/],["patti",/^(patti|पत्ती|પત્તી)$/],["nang",/^(nang|नग|નંગ)$/],["pack",/^(pack|पैक|પેક)$/],["bottle",/^(bottle|बोतल|બોટલ)$/]];
+function parseQty(text) {
+  let t = text.toLowerCase().replace(/[०-९૦-૯]/g, c => DIG[c]);
+  t = t.replace(/(18|108)\s*(abhishek|nadi|अभिषेक|नदी|અભિષેક|નદી)/g, " ").replace(/50\s*\/\s*50/g, " ");
+  const m = t.match(/(\d+(?:\.\d+)?)\s*([\p{L}\p{M}]+)?/u);
+  if (!m) return null;
+  const unit = m[2] ? QU.find(([, re]) => re.test(m[2])) : null;
+  return { v: parseFloat(m[1]), k: unit ? unit[0] : "" };
+}
+function priceFor(it, q) {
+  if (!it.un) return null;
+  let u;
+  if (!q.k) u = q.v;
+  else if (it.uk === "kg") u = q.k === "kg" ? q.v / it.un : q.k === "gm" ? q.v / 1000 / it.un : null;
+  else if (it.uk === "gm") u = q.k === "gm" ? q.v / it.un : q.k === "kg" ? q.v * 1000 / it.un : null;
+  else u = q.k === it.uk ? q.v / it.un : null;
+  return u == null ? null : it.r.map(r => Math.round(r * u * 100) / 100);
+}
+function itemLine(id, L, q, n) {
+  const it = RD[id], name = nm(id, L);
+  if (!it.r.length) return name + " " + tx(T.only, L) + "\n" + tx(T.contact, L);
+  const unit = it.un ? " " + it.un + " " + ul(it.uk, L) : "";
+  const base = name + unit + ": " + rt(it, L);
+  if (it.noQty && (q || /quantity|matra|मात्रा|માત્રા|kitna milega|कितना मिलेगा/.test(n))) return base + "\n" + tx(T.qty, L);
+  if (!q) return base;
+  const tot = priceFor(it, q);
+  if (!tot) return base + "\n" + tx(T.qty, L);
+  const lab = q.k || it.uk;
+  return q.v + " " + ul(lab, L) + " " + name + ": Rs. " + tot.join(" / ") + (tot.length > 1 ? " " + tx(T.q, L) : "") + "\n(" + base + ")";
+}
+const INTENT = ["rate","rates","kitne","kitna","kitni","kimat","kimmat","price","cost","milega","milta","chahiye","chahie","available","bhav","ketla","ketlu","ketli","joie","joiye","रेट","कितने","कितना","कितनी","कीमत","भाव","मिलेगा","मिलता","चाहिए","કેટલા","કેટલું","કેટલી","ભાવ","કિંમત","જોઈએ"].map(norm);
+const CONTENT = ["aata","aati","aate","andar","contents","details","detail","jankari","bare","batao","alag","extra","आता","आती","आते","अंदर","बारे","बताओ","जानकारी","अलग","આવે","અંદર","વિશે","કહો","માહિતી","અલગ"].map(norm);
+let lastFound = [];
+function buildReply(text, n, found, L) {
+  const q = parseQty(text), words = n.split(" ");
+  const hasRate = INTENT.some(w => words.includes(w)), hasContent = CONTENT.some(w => n.includes(w));
+  if (!found.length && q && lastFound.length) found = lastFound;
+  if (!found.length) return hasRate ? tx(T.notin, L) + " " + tx(T.contact, L) : tx(T.jj, L);
+  if (found.some(p => p[0] === "grp-shakrastav" || p[0] === "grp-abhishek18")) found = found.filter(p => p[0] !== "grp-aushadhi-ask");
+  const parts = [], real = [];
+  for (const p of found) {
+    const id = p[0];
+    if (id === "grp-shakrastav") parts.push(groupText("shakrastav", L));
+    else if (id === "grp-abhishek18") parts.push(groupText("ab18", L));
+    else if (id === "grp-sets") parts.push(setsText(L));
+    else if (id === "grp-aushadhi-ask") parts.push(tx(T.askau, L));
+    else if (id === "vaskshep") parts.push(groupText("vaskshep", L));
+    else if (id === "gugal") parts.push(groupText("gugal", L));
+    else if (id === "attar") parts.push(attarText(L));
+    else if (id === "ooncha-attar") parts.push(groupText("ooncha", L));
+    else if (SETNAME[id]) parts.push(hasRate && !hasContent ? setRate(id, L) : setContents(id, L));
+    else if (RD[id]) { real.push(p); parts.push(itemLine(id, L, q, n)); }
+  }
+  if (real.length) lastFound = real;
+  return parts.length ? parts.join("\n\n") : tx(T.jj, L);
+}
+/*ENGINE-END*/
+
+async function showPhotos(list) {
+  if (!list.length) { add("assistant", "Kaunsi cheez ki photo chahiye? Cheez ka naam likhein, jaise Vaskshep, Ashtagandh, Gugal."); return; }
+  for (const p of list) {
+    if (p[4]) { add("assistant", p[4]); continue; }
+    const cnt = p[3] || 3;
+    const slots = Array.from({ length: cnt }, (_, i) => [String(i + 1), "Photo"]).concat(cnt > 1 ? [["500gm", "500 gm pack"], ["1kg", "1 kg pack"]] : []);
+    const got = (await Promise.all(slots.map(async ([s, cap]) => { const i = await loadImg("photos/" + p[0] + "-" + s + ".jpg"); return i ? { i, cap } : null; }))).filter(Boolean);
+    if (!got.length) { add("assistant", p[1] + " ki photo abhi available nahi hai. Kalpesh Guruji se contact karein: 9879582176"); continue; }
+    const box = add("assistant", p[1] + ":");
+    const g = document.createElement("div");
+    g.className = "gal";
+    got.forEach(({ i, cap }) => {
+      const f = document.createElement("figure"), c = document.createElement("figcaption");
+      i.alt = cap; c.textContent = cap;
+      i.addEventListener("click", () => { zoomImg.src = i.src; zoom.style.display = "flex"; });
+      f.append(i, c); g.append(f);
+    });
+    box.append(g);
+  }
+  chat.scrollTop = chat.scrollHeight;
+}
+
+/*AI-START*/
+const API_KEY = "YAHAN_APNI_GROQ_KEY_DAALEIN";   // console.groq.com se free key (gsk_...)
+const GROQ_MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
+const AI_READY = () => API_KEY && !API_KEY.startsWith("YAHAN");
+async function AI_CALL(system, user) {
+  for (const model of GROQ_MODELS) {
+    const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 7000);
+    try {
+      const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST", signal: ctl.signal,
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + API_KEY },
+        body: JSON.stringify({ model, temperature: 0, max_tokens: 80, response_format: { type: "json_object" },
+          messages: [{ role: "system", content: system }, { role: "user", content: user }] })
+      });
+      clearTimeout(tm);
+      if (!r.ok) continue;
+      const j = await r.json();
+      return j.choices?.[0]?.message?.content || "";
+    } catch (e) { clearTimeout(tm); }
+  }
+  return null;
+}
+/*AI-END*/
+let PREF = 1;            // 0 = English/Roman, 1 = Hindi (Devanagari, default), 2 = Gujarati
+let lastBuild = null;
+function langRequest(text) {
+  const s = text.toLowerCase();
+  if (/gujarati|gujrati|gujarat[iy]|ગુજરાતી|गुजराती/.test(s)) return 2;
+  if (/english|inglish|angrezi|अंग्रेज़ी|अंग्रेजी|इंग्लिश|ઇંગ્લિશ|અંગ્રેજી/.test(s)) return 0;
+  if (/\bhindi\b|हिंदी|हिन्दी|હિન્દી/.test(s)) return 1;
+  return null;
+}
+const AI_IDS = PHOTOS.map(p => p[0] + "=" + p[1]).join("; ");
+const AI_PROMPT = `You classify customer messages for a Jain pooja-samagri shop price bot. The customer may write Hindi, Gujarati or English, in any script, with typos or dictation errors. Reply ONLY with JSON: {"t":"item"|"unknown"|"other","ids":[],"lang":""}.
+t="item": customer asks rate/info/contents/photo of one or more products from the list; put their ids in ids (misspelled names are fine; "set"/"sets" = grp-sets; small/half/mota(full) set = small-set/half-set/full-set; 18 abhishek aushadhi = grp-abhishek18; shakrastav aushadhi = grp-shakrastav; generic vaskshep/gugal/attar/ooncha attar use ids vaskshep/gugal/attar/ooncha-attar).
+t="unknown": asks about a pooja product or rate that is NOT in the list.
+t="other": greeting, random keys/gibberish, off-topic, health/medicine questions, or anything not about shop products.
+lang: "gu","en" or "hi" ONLY if the customer explicitly asks to answer in that language, else "".
+LIST: ` + AI_IDS;
+async function aiClassify(text) {
+  if (!AI_READY()) return null;
+  try {
+    const raw = await AI_CALL(AI_PROMPT, text);
+    const m = raw && raw.match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    const r = JSON.parse(m[0]);
+    r.ids = (r.ids || []).filter(id => PHOTOS.some(p => p[0] === id));
+    return r;
+  } catch (e) { return null; }
+}
+function respond(text, n, found) {
+  lastBuild = { text, n, found };
+  add("assistant", buildReply(text, n, found, PREF));
 }
 
 async function ask(text) {
-if (busy || !text.trim()) return;
-text = text.trim();
-document.getElementById("hello")?.remove();
-document.getElementById("chips")?.remove();
-errorNote.textContent = "";
-add("user", text);
-history.push({ role: "user", content: text });
-busy = true;
-send.disabled = true;
-const el = add("assistant", "जवाब तैयार हो रहा है…");
-let full = "";
-
-try {
-if (!API_KEY || API_KEY === "PASTE_GEMINI_API_KEY_HERE") {
-el.textContent = "Gemini API key सेट नहीं है। index.html में API_KEY के अंदर अपनी Gemini API key डालें, फिर दोबारा चलाएँ।";
-history.pop();
-return;
-}
-
-const contents = history.slice(-20).map(m => ({  
-  role: m.role === "assistant" ? "model" : "user",  
-  parts: [{ text: m.content }]  
-}));  
-const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?alt=sse&key=${encodeURIComponent(API_KEY)}`, {  
-  method: "POST",  
-  signal: AbortSignal.timeout(60000),  
-  headers: { "Content-Type": "application/json" },  
-  body: JSON.stringify({  
-    systemInstruction: { parts: [{ text: SYSTEM }] },  
-    contents,  
-    generationConfig: { maxOutputTokens: 1500, temperature: 0.4 }  
-  })  
-});  
-
-if (!r.ok) {  
-  const details = (await r.text()).slice(0, 300);  
-  el.textContent = "जवाब नहीं आ पाया। API error " + r.status + ": " + details;  
-  history.pop();  
-  return;  
-}  
-
-if (!r.body) throw new Error("Streaming response उपलब्ध नहीं है");  
-const reader = r.body.getReader();  
-const dec = new TextDecoder();  
-let buf = "";  
-
-for (;;) {  
-  const { done, value } = await reader.read();  
-  if (done) break;  
-  buf += dec.decode(value, { stream: true });  
-  const lines = buf.split(/\r?\n/);  
-  buf = lines.pop() || "";  
-  for (const ln of lines) {  
-    if (!ln.startsWith("data:")) continue;  
-    const data = ln.slice(5).trim();  
-    if (data === "[DONE]") continue;  
-    try {  
-      const j = JSON.parse(data);  
-      const chunkText = (j.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("");  
-      full += chunkText;  
-      if (full) {  
-        el.textContent = full;  
-        chat.scrollTop = chat.scrollHeight;  
-      }  
-    } catch (_) {}  
-  }  
-}  
-
-if (!full) {  
-  el.textContent = "जवाब नहीं आया। इंटरनेट कनेक्शन जाँचकर दोबारा कोशिश करें।";  
-  history.pop();  
-} else {  
-  history.push({ role: "assistant", content: full });  
-}
-
-} catch (e) {
-el.textContent = "कनेक्शन में दिक्कत हुई: " + (e?.message || "Unknown error") + "। इंटरनेट/API key जाँचें और फिर कोशिश करें।";
-history.pop();
-} finally {
-busy = false;
-send.disabled = false;
-chat.scrollTop = chat.scrollHeight;
-}
+  text = (text || "").trim();
+  if (!text) return;
+  document.getElementById("hello")?.remove();
+  document.getElementById("chips")?.remove();
+  errorNote.textContent = "";
+  add("user", text);
+  const lr = langRequest(text);
+  if (lr !== null) PREF = lr;
+  const quick = quickReply(text);
+  if (quick) { add("assistant", quick); return; }
+  const n = norm(text);
+  let found = matchPhotos(n);
+  if (found.some(p => !p[4] && (p[0].startsWith("attar-") || p[0].startsWith("ooncha-")))) found = found.filter(p => !p[4]);
+  const weak = !found.length || (found.every(p => p[0] === "grp-aushadhi-ask") && n.split(" ").length > 1);
+  if (isPhotoAsk(n) && !weak) { await showPhotos(found); lastPhoto = found; return; }
+  if (!weak) { lastPhoto = found; respond(text, n, found); return; }
+  // pehle se jawab bana hua ho aur sirf bhasha badalni ho (jaise "Gujarati me batao")
+  if (lr !== null && lastBuild && found.length === 0 && n.split(" ").length <= 5) { respond(lastBuild.text, lastBuild.n, lastBuild.found); return; }
+  // local match nahi mila -> AI sirf samajhne ke liye (jawab ke rate hamesha code se)
+  const dots = add("assistant", "···");
+  const r = await aiClassify(text);
+  dots.remove();
+  if (r && r.lang) { PREF = r.lang === "gu" ? 2 : r.lang === "en" ? 0 : 1; }
+  if (r && r.t === "item" && r.ids.length) {
+    found = r.ids.map(id => PHOTOS.find(p => p[0] === id));
+    if (isPhotoAsk(n)) { await showPhotos(found); lastPhoto = found; return; }
+    lastPhoto = found; respond(text, n, found); return;
+  }
+  if (r && r.t === "item" && lastBuild && r.lang) { respond(lastBuild.text, lastBuild.n, lastBuild.found); return; }
+  if (r && r.t === "unknown") { add("assistant", tx(T.notin, PREF) + " " + tx(T.contact, PREF)); return; }
+  if (found.length) { add("assistant", tx(T.askau, PREF)); return; }
+  if (isPhotoAsk(n) && lastPhoto.length && !r) { await showPhotos(lastPhoto); return; }
+  if (!r && lastBuild && lr !== null) { respond(lastBuild.text, lastBuild.n, lastBuild.found); return; }
+  add("assistant", tx(T.jj, PREF));
 }
 
 document.getElementById("f").addEventListener("submit", e => {
-e.preventDefault();
-const v = t.value.trim();
-if (!v || busy) return;
-t.value = "";
-t.style.height = "48px";
-ask(v);
+  e.preventDefault();
+  const v = t.value.trim();
+  if (!v || busy) return;
+  t.value = ""; t.style.height = "48px";
+  ask(v);
 });
-
-t.addEventListener("input", () => {
-t.style.height = "48px";
-t.style.height = Math.min(t.scrollHeight, 120) + "px";
-});
-
+t.addEventListener("input", () => { t.style.height = "48px"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; });
 t.addEventListener("keydown", e => {
-if (e.key === "Enter" && !e.shiftKey) {
-e.preventDefault();
-document.getElementById("f").requestSubmit();
-}
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); document.getElementById("f").requestSubmit(); }
 });
-
 document.getElementById("chips").addEventListener("click", e => {
-const button = e.target.closest("button");
-if (button && !busy) ask(button.textContent);
+  const b = e.target.closest("button");
+  if (b && !busy) ask(b.textContent);
 });
-</script>
 
-</body>  
-</html>  
+/* Microphone / voice typing */
+const mic = document.getElementById("mic"), voiceLang = document.getElementById("voice-lang");
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null, listening = false;
+function setMic(a) {
+  listening = a;
+  mic.classList.toggle("listening", a);
+  mic.textContent = a ? "⏹" : "🎤";
+  mic.setAttribute("aria-label", a ? "बोलना रोकें" : "माइक से बोलें");
+}
+if (!SR) {
+  mic.addEventListener("click", () => {
+    errorNote.textContent = "इस ऐप में voice recognition उपलब्ध नहीं है। कीबोर्ड के voice typing का इस्तेमाल करें।";
+  });
+} else {
+  recognition = new SR();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 1;
+  recognition.onstart = () => { errorNote.textContent = "सुन रहा हूँ… अब बोलें।"; setMic(true); };
+  recognition.onresult = ev => {
+    let fin = "", tmp = "";
+    for (let i = ev.resultIndex; i < ev.results.length; i++) {
+      const tr = ev.results[i][0].transcript;
+      if (ev.results[i].isFinal) fin += tr; else tmp += tr;
+    }
+    const s = (fin || tmp).trim();
+    if (s) { t.value = s; t.style.height = "48px"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; }
+  };
+  recognition.onerror = ev => {
+    const msg = {
+      "not-allowed": "माइक की अनुमति नहीं मिली। Settings में ऐप की Microphone permission चालू करें।",
+      "service-not-allowed": "Voice recognition की अनुमति नहीं है।",
+      "no-speech": "आवाज़ सुनाई नहीं दी। दोबारा माइक दबाकर बोलें।",
+      "network": "Voice recognition के लिए नेटवर्क में दिक्कत हुई।",
+      "audio-capture": "माइक नहीं मिला। अनुमति और डिवाइस जाँचें।"
+    };
+    errorNote.textContent = msg[ev.error] || ("माइक में समस्या: " + ev.error);
+    setMic(false);
+  };
+  recognition.onend = () => {
+    setMic(false);
+    if (t.value.trim()) errorNote.textContent = "टेक्स्ट बॉक्स में आया है। भेजने के लिए ↑ दबाएँ।";
+  };
+  mic.addEventListener("click", () => {
+    if (listening) { recognition.stop(); return; }
+    if (busy) { errorNote.textContent = "जवाब आने तक रुकें, फिर माइक इस्तेमाल करें।"; return; }
+    errorNote.textContent = "";
+    recognition.lang = voiceLang.value;
+    try { recognition.start(); } catch (err) { errorNote.textContent = "माइक शुरू नहीं हो पाया। थोड़ी देर बाद कोशिश करें।"; }
+  });
+}
+</script>
+</body>
+</html>
